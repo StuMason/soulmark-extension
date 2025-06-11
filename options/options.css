@@ -1,0 +1,220 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: #FFFEF7;
+  color: #2C1810;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.logo {
+  flex-shrink: 0;
+}
+
+h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #D4722C;
+  letter-spacing: -0.5px;
+}
+
+h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #5A3A2A;
+  margin-bottom: 16px;
+}
+
+.settings-section {
+  background: white;
+  border: 2px solid #F0E6DC;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.setting-item {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.setting-item:last-child {
+  margin-bottom: 0;
+}
+
+label {
+  font-weight: 500;
+  color: #5A3A2A;
+  min-width: 150px;
+}
+
+.select-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 2px solid #E0D5CA;
+  border-radius: 8px;
+  background-color: #FFFEF7;
+  font-size: 14px;
+  color: #2C1810;
+  transition: border-color 0.2s ease;
+}
+
+.select-input:focus {
+  outline: none;
+  border-color: #D4722C;
+}
+
+.icon-button {
+  padding: 8px;
+  background-color: #F0E6DC;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #5A3A2A;
+}
+
+.icon-button:hover {
+  background-color: #E0D5CA;
+  transform: rotate(180deg);
+}
+
+.primary-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background-color: #D4722C;
+  color: #FFFEF7;
+  border: none;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.primary-button:hover {
+  background-color: #C0642A;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(212, 114, 44, 0.3);
+}
+
+.primary-button:active {
+  transform: translateY(0);
+}
+
+.test-status {
+  font-size: 14px;
+  color: #5A3A2A;
+  margin-left: 12px;
+}
+
+.test-status.success {
+  color: #5A8A3A;
+}
+
+.test-status.error {
+  color: #E74C3C;
+}
+
+.audio-visualizer {
+  display: none;
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #F8F4F0;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.audio-visualizer.active {
+  display: block;
+}
+
+#visualizer-canvas {
+  width: 100%;
+  max-width: 400px;
+  height: 100px;
+  background-color: #FFFEF7;
+  border-radius: 8px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  font-weight: normal;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: #D4722C;
+  cursor: pointer;
+}
+
+.about-text {
+  color: #5A3A2A;
+  line-height: 1.8;
+  margin-bottom: 12px;
+}
+
+.version {
+  font-size: 14px;
+  color: #8A7A6A;
+}
+
+.save-section {
+  margin-top: 32px;
+  text-align: center;
+}
+
+.save-status {
+  display: inline-block;
+  margin-left: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.save-status.show {
+  opacity: 1;
+}
+
+.save-status.success {
+  color: #5A8A3A;
+}
+
+.save-status.error {
+  color: #E74C3C;
+}
+
+/* Animation for refresh icon */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.icon-button.spinning svg {
+  animation: spin 0.5s linear;
+}

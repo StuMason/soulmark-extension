@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "Soulmark - Human Verification",
+  "version": "0.1.0",
+  "description": "Prove you're human by speaking words from your posts",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://x.com/*",
+    "https://twitter.com/*"
+  ],
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://x.com/*", "https://twitter.com/*"],
+      "js": ["content-scripts/twitter.js"],
+      "css": ["styles/soulmark.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup/index.html",
+    "default_title": "Soulmark - Verify your humanity"
+  },
+  "options_page": "options/index.html",
+  "icons": {
+    "16": "assets/icon-16.png",
+    "48": "assets/icon-48.png",
+    "128": "assets/icon-128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/*"],
+      "matches": ["https://x.com/*", "https://twitter.com/*"]
+    }
+  ]
+}

@@ -1,0 +1,212 @@
+/* Soulmark button styling */
+.soulmark-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  margin-right: 12px;
+  background-color: #FFFEF7;
+  color: #D4722C;
+  border: 2px solid #D4722C;
+  border-radius: 9999px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.soulmark-button:hover {
+  background-color: #D4722C;
+  color: #FFFEF7;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(212, 114, 44, 0.3);
+}
+
+.soulmark-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(212, 114, 44, 0.2);
+}
+
+.soulmark-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Add a subtle hand-drawn effect */
+.soulmark-button::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 9999px;
+  padding: 2px;
+  background: linear-gradient(45deg, transparent, rgba(212, 114, 44, 0.1), transparent);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.soulmark-button:hover::before {
+  opacity: 1;
+}
+
+/* Soulmark indicator in tweets */
+.soulmark-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 4px;
+  padding: 2px 8px;
+  background-color: rgba(212, 114, 44, 0.1);
+  color: #D4722C;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  vertical-align: middle;
+}
+
+.soulmark-indicator svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Verification badge styles */
+.soulmark-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  margin-right: 12px;
+  background-color: rgba(212, 114, 44, 0.08);
+  border: 1px solid rgba(212, 114, 44, 0.2);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 13px;
+  color: #D4722C;
+}
+
+.soulmark-badge:hover {
+  background-color: rgba(212, 114, 44, 0.15);
+  border-color: rgba(212, 114, 44, 0.3);
+  transform: translateY(-1px);
+}
+
+.soulmark-badge svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.soulmark-badge-text {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Animation for badge appearance */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.soulmark-badge {
+  animation: fadeInScale 0.3s ease-out;
+}
+
+/* Different styles for authenticated vs anonymous */
+.soulmark-badge.authenticated {
+  background-color: rgba(212, 114, 44, 0.12);
+  border-color: rgba(212, 114, 44, 0.3);
+}
+
+/* Hide badge text on smaller screens */
+@media (max-width: 480px) {
+  .soulmark-badge-text {
+    display: none;
+  }
+  
+  .soulmark-badge {
+    padding: 4px;
+  }
+}
+
+/* Inline soulmark indicator */
+.soulmark-indicator {
+  display: inline-block;
+  color: #D4722C;
+  font-size: 0.9em;
+  cursor: pointer;
+  padding: 0 2px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  position: relative;
+  top: -1px;
+}
+
+.soulmark-indicator:hover {
+  background-color: rgba(212, 114, 44, 0.1);
+  transform: scale(1.2);
+}
+
+/* Soulmark tooltip */
+.soulmark-tooltip {
+  position: fixed;
+  z-index: 10000;
+  background: #FFFEF7;
+  border: 2px solid #D4722C;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  max-width: 250px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: tooltipFadeIn 0.2s ease;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.soulmark-tooltip-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: #D4722C;
+}
+
+.soulmark-tooltip-content {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #5A3A2A;
+}
+
+.soulmark-tooltip-content p {
+  margin: 4px 0;
+}
+
+.soulmark-code {
+  font-family: monospace;
+  font-size: 12px;
+  color: #8A7A6A;
+  margin-top: 8px !important;
+  padding-top: 8px;
+  border-top: 1px solid #E0D5CA;
+}

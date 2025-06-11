@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Soulmark - Verify Your Humanity</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <svg class="logo" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="10" stroke="#D4722C" stroke-width="2"/>
+        <circle cx="12" cy="12" r="4" fill="#D4722C"/>
+      </svg>
+      <h1>Soulmark</h1>
+    </div>
+    
+    <div class="content">
+      <p class="instructions">Speak these words to verify you're human:</p>
+      
+      <div id="permission-notice" style="display: none; margin: 10px 0; padding: 10px; background: #fff3cd; border-radius: 8px; font-size: 14px; color: #856404;">
+        🎤 First time? Click below to allow microphone access.
+      </div>
+      
+      <div class="words-container" id="wordsContainer">
+        <!-- Words will be inserted here -->
+      </div>
+      
+      <button class="record-button" id="recordButton">
+        <svg class="mic-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10 1C8.34315 1 7 2.34315 7 4V10C7 11.6569 8.34315 13 10 13C11.6569 13 13 11.6569 13 10V4C13 2.34315 11.6569 1 10 1Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M5 8V10C5 12.7614 7.23858 15 10 15C12.7614 15 15 12.7614 15 10V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M10 15V19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M7 19H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Press and hold to speak</span>
+      </button>
+      
+      <div class="status" id="status"></div>
+      
+      <div class="waveform" id="waveform">
+        <div class="wave"></div>
+        <div class="wave"></div>
+        <div class="wave"></div>
+        <div class="wave"></div>
+        <div class="wave"></div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="../config.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
