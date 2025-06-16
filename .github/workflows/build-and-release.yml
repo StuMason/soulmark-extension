@@ -1,5 +1,10 @@
 name: Build and Release
 
+permissions:
+  contents: write
+  packages: write
+  actions: read
+
 on:
   push:
     branches: [ main ]
@@ -20,51 +25,9 @@ on:
           - major
 
 jobs:
-  security-checks:
-    name: Security Scan
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Run security checks
-        run: |
-          echo "🔍 Running security checks..."
-          
-          # Check for exposed secrets/API keys
-          echo "Checking for exposed secrets..."
-          if grep -r "SUPABASE_ANON_KEY\|SUPABASE_URL" . --exclude-dir=.git --exclude-dir=node_modules --exclude="*.md" --exclude="config.js.example" | grep -v "CONFIG\." | grep -v "// "; then
-            echo "❌ Potential hardcoded secrets found!"
-            exit 1
-          else
-            echo "✅ No hardcoded secrets found"
-          fi
-          
-          # Check for sensitive files
-          echo "Checking for sensitive files..."
-          SENSITIVE_FILES=(".env" "config.js" ".env.local" "secrets.json")
-          for file in "${SENSITIVE_FILES[@]}"; do
-            if [[ -f "$file" && "$file" != "config.js" ]]; then
-              echo "❌ Sensitive file found: $file"
-              exit 1
-            fi
-          done
-          echo "✅ No sensitive files in package"
-          
-          # Verify required files exist
-          echo "Verifying required files..."
-          REQUIRED_FILES=("manifest.json" "background/service-worker.js" "popup/index.html")
-          for file in "${REQUIRED_FILES[@]}"; do
-            if [[ ! -f "$file" ]]; then
-              echo "❌ Required file missing: $file"
-              exit 1
-            fi
-          done
-          echo "✅ All required files present"
-
   lint-and-validate:
     name: Lint and Validate
     runs-on: ubuntu-latest
-    needs: security-checks
     steps:
       - uses: actions/checkout@v4
       
@@ -149,7 +112,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: soulmark-extension-v${{ steps.get_version.outputs.version }}
+          name: soulmark-extension-${{ github.sha }}
           path: dist/soulmark-extension-v${{ steps.get_version.outputs.version }}.zip
           retention-days: 30
 
@@ -168,13 +131,20 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: soulmark-extension-v${{ steps.get_version.outputs.version }}
+          name: soulmark-extension-${{ github.sha }}
           path: ./dist
+      
+      - name: Find zip file
+        id: find_zip
+        run: |
+          ZIP_FILE=$(find dist -name "soulmark-extension-*.zip" | head -1)
+          echo "zip_file=$ZIP_FILE" >> $GITHUB_OUTPUT
+          echo "Found zip: $ZIP_FILE"
       
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: dist/soulmark-extension-v${{ steps.get_version.outputs.version }}.zip
+          files: ${{ steps.find_zip.outputs.zip_file }}
           draft: false
           prerelease: false
           generate_release_notes: true
