@@ -1,5 +1,4 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,7 +6,6 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -16,11 +14,9 @@ serve(async (req) => {
     const formData = await req.formData()
     const audioFile = formData.get('audio') as File
     const expectedWords = JSON.parse(formData.get('words') as string)
-    const messageHash = formData.get('messageHash') as string
-    const userId = formData.get('userId') as string | null // Optional!
 
-    if (!audioFile || !expectedWords || !messageHash) {
-      throw new Error('Missing required fields')
+    if (!audioFile || !expectedWords) {
+      throw new Error('Missing required fields: audio and words')
     }
 
     // Convert audio for Whisper
@@ -31,7 +27,7 @@ serve(async (req) => {
     const whisperForm = new FormData()
     whisperForm.append('file', audioBlob, 'audio.webm')
     whisperForm.append('model', 'whisper-1')
-    whisperForm.append('language', 'en') // Faster if we specify language
+    whisperForm.append('language', 'en')
 
     const whisperResponse = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
@@ -47,17 +43,17 @@ serve(async (req) => {
 
     const { text: transcription } = await whisperResponse.json()
     
-    // Fuzzy matching - check if user said at least one expected word
+    // Fuzzy matching
     const spokenWords = transcription.toLowerCase().split(/\s+/)
     const expectedLower = expectedWords.map((w: string) => w.toLowerCase())
     
-    const matchFound = expectedLower.some((word: string) => 
-      spokenWords.some(spoken => {
-        // Direct match
+    const matchedWords: string[] = []
+    let matchCount = 0
+    
+    expectedLower.forEach((word: string) => {
+      const match = spokenWords.find(spoken => {
         if (spoken === word) return true
-        // Partial match (for plurals, tense changes)
         if (spoken.includes(word) || word.includes(spoken)) return true
-        // Very close match (1 letter difference)
         if (Math.abs(spoken.length - word.length) <= 1) {
           let differences = 0
           for (let i = 0; i < Math.min(spoken.length, word.length); i++) {
@@ -67,59 +63,28 @@ serve(async (req) => {
         }
         return false
       })
-    )
-
-    if (!matchFound) {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          message: 'Words not matched',
-          transcription,
-          debug: { expectedWords, spokenWords: spokenWords.slice(0, 10) }
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    // Generate soulmark code
-    const code = generateSoulmarkCode()
-
-    // Store in database
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
-
-    const insertData: any = {
-      code,
-      message_hash: messageHash,
-      selected_words: expectedWords,
-      word_count: expectedWords.length,
-      voice_confirmed: true,
-      platform: 'chrome-extension',
-      metadata: {
-        transcription: transcription.substring(0, 200),
-        match_confidence: 'fuzzy',
-        timestamp: new Date().toISOString()
+      
+      if (match) {
+        matchCount++
+        matchedWords.push(word)
       }
-    }
+    })
 
-    // Only add user_id if provided
-    if (userId) {
-      insertData.user_id = userId
-    }
-
-    const { error } = await supabase
-      .from('soulmarks')
-      .insert(insertData)
-
-    if (error) throw error
+    // Calculate score (0-100 where 100 = perfect match)
+    const score = Math.round((matchCount / expectedWords.length) * 100)
+    
+    // Confidence is high for voice - it's pretty binary
+    const confidence = 100
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        code: `SM:${code}`,
-        transcription 
+      JSON.stringify({
+        score,
+        confidence,
+        transcription,
+        matchedWords,
+        expectedWords,
+        matchCount,
+        success: score > 0
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
@@ -127,20 +92,13 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error:', error)
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
+        score: 0,
+        confidence: 100,
         error: error.message,
-        success: false 
+        success: false
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
     )
   }
 })
-
-function generateSoulmarkCode(): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
-  let code = ''
-  for (let i = 0; i < 7; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return code
-}

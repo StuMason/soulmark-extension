@@ -1,0 +1,39 @@
+<svg width="1400" height="560" viewBox="0 0 1400 560" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1400" height="560" fill="url(#gradient2)"/>
+  
+  <!-- Background decorative circles -->
+  <circle cx="200" cy="280" r="200" fill="#D4722C" opacity="0.05"/>
+  <circle cx="1200" cy="280" r="150" fill="#D4722C" opacity="0.05"/>
+  
+  <!-- Main icon -->
+  <circle cx="250" cy="280" r="100" stroke="#D4722C" stroke-width="12"/>
+  <circle cx="250" cy="280" r="45" fill="#D4722C"/>
+  
+  <!-- Main text -->
+  <text x="420" y="220" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="72" font-weight="bold" fill="#2C1810">Soulmark</text>
+  <text x="420" y="280" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="36" fill="#5A3A2A">Human Verification for Social Media</text>
+  
+  <!-- Features -->
+  <text x="420" y="350" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="24" fill="#5A3A2A">✓ 2-second voice verification</text>
+  <text x="420" y="385" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="24" fill="#5A3A2A">✓ Works on X &amp; LinkedIn</text>
+  <text x="420" y="420" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="24" fill="#5A3A2A">✓ No crypto wallets needed</text>
+  
+  <!-- Call to action -->
+  <text x="900" y="480" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="28" font-weight="bold" fill="#D4722C">Reclaim social media from bots</text>
+  
+  <!-- Decorative elements -->
+  <circle cx="1100" cy="150" r="25" stroke="#D4722C" stroke-width="3" opacity="0.3"/>
+  <circle cx="1100" cy="150" r="10" fill="#D4722C" opacity="0.3"/>
+  <circle cx="1180" cy="200" r="25" stroke="#D4722C" stroke-width="3" opacity="0.3"/>
+  <circle cx="1180" cy="200" r="10" fill="#D4722C" opacity="0.3"/>
+  <circle cx="1260" cy="250" r="25" stroke="#D4722C" stroke-width="3" opacity="0.3"/>
+  <circle cx="1260" cy="250" r="10" fill="#D4722C" opacity="0.3"/>
+  
+  <defs>
+    <linearGradient id="gradient2" x1="0" y1="0" x2="1400" y2="560" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF8F0"/>
+      <stop offset="0.5" stop-color="#FFEDE0"/>
+      <stop offset="1" stop-color="#FFF8F0"/>
+    </linearGradient>
+  </defs>
+</svg>

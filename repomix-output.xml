@@ -1,0 +1,5180 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+.claude/
+  settings.local.json
+assets/
+  icon-128.svg
+  icon-16.svg
+  icon-48.svg
+  icon.svg
+background/
+  service-worker.js
+content-scripts/
+  linkedin.js
+  twitter.js
+marketing/
+  marquee_promo_1400x560.svg
+  small_promo_440x280.svg
+options/
+  index.html
+  options.css
+  options.js
+popup/
+  index.html
+  popup.css
+  popup.js
+shared/
+  soulmark-core.js
+styles/
+  soulmark.css
+supabase/
+  .temp/
+    cli-latest
+    gotrue-version
+    pooler-url
+    postgres-version
+    project-ref
+    rest-version
+    storage-version
+  functions/
+    check-soulmark/
+      .npmrc
+      deno.json
+      index.ts
+    verify-voice/
+      .npmrc
+      deno.json
+      index.ts
+  config.toml
+.gitignore
+CLAUDE.md
+config.js.example
+create_promo_tiles.html
+generate_icons.py
+generate_promo_tiles.py
+generate-icons.html
+manifest.json
+package.sh
+PLAN.md
+PRIVACY_JUSTIFICATIONS.md
+PRIVACY.md
+README.md
+resize_screenshots.py
+STORE_LISTING.md
+TERMS.md
+test.html
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path=".claude/settings.local.json">
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(mkdir:*)",
+      "Bash(rm:*)",
+      "Bash(python3:*)",
+      "Bash(ls:*)",
+      "Bash(chmod:*)",
+      "Bash(./package.sh)",
+      "Bash(zip:*)"
+    ],
+    "deny": []
+  }
+}
+</file>
+
+<file path="assets/icon-128.svg">
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="128" height="128" fill="#FFFEF7"/>
+  <circle cx="64.0" cy="64.0" r="51.2" stroke="#D4722C" stroke-width="10.24"/>
+  <circle cx="64.0" cy="64.0" r="23.04" fill="#D4722C"/>
+</svg>
+</file>
+
+<file path="assets/icon-16.svg">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="16" height="16" fill="#FFFEF7"/>
+  <circle cx="8.0" cy="8.0" r="6.4" stroke="#D4722C" stroke-width="1.5"/>
+  <circle cx="8.0" cy="8.0" r="2.88" fill="#D4722C"/>
+</svg>
+</file>
+
+<file path="assets/icon-48.svg">
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" fill="#FFFEF7"/>
+  <circle cx="24.0" cy="24.0" r="19.200000000000003" stroke="#D4722C" stroke-width="3.84"/>
+  <circle cx="24.0" cy="24.0" r="8.64" fill="#D4722C"/>
+</svg>
+</file>
+
+<file path="content-scripts/linkedin.js">
+// LinkedIn integration for Soulmark
+// TODO: Import shared functionality once modules are supported in content scripts
+// For now, we'll duplicate some code
+
+// Common words to skip when selecting words for verification
+const COMMON_WORDS = new Set([
+  'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+  'of', 'with', 'by', 'from', 'up', 'about', 'into', 'through', 'during',
+  'before', 'after', 'above', 'below', 'between', 'under', 'is', 'are',
+  'was', 'were', 'been', 'being', 'have', 'has', 'had', 'do', 'does',
+  'did', 'will', 'would', 'should', 'could', 'may', 'might', 'must',
+  'can', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she',
+  'it', 'we', 'they', 'them', 'their', 'what', 'which', 'who', 'when',
+  'where', 'why', 'how', 'all', 'each', 'every', 'some', 'any', 'few',
+  'more', 'most', 'other', 'such', 'only', 'own', 'same', 'so', 'than',
+  'too', 'very', 'just', 'my', 'your', 'his', 'her', 'its', 'our'
+]);
+
+// Map to store intervals for each button
+const monitoringIntervals = new WeakMap();
+
+// Find LinkedIn post/comment areas and inject button
+function injectSoulmarkButton() {
+  console.log('[Soulmark LinkedIn] Starting injection...');
+  
+  // Initial scan
+  scanForPostAreas();
+  
+  // Look for new post areas
+  const observer = new MutationObserver((mutations) => {
+    scanForPostAreas();
+  });
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+}
+
+function scanForPostAreas() {
+  console.log('[Soulmark LinkedIn] Scanning for post areas...');
+  
+  // Look for the post creation modal/editor
+  const postEditors = document.querySelectorAll('.share-creation-state__text-editor, .ql-editor[contenteditable="true"]');
+  console.log(`[Soulmark LinkedIn] Found ${postEditors.length} post editors`);
+  
+  if (postEditors.length > 0) {
+    // Look for the button carousel/list in the post creation modal
+    const buttonLists = document.querySelectorAll('.artdeco-carousel__slider, ul[class*="share-creation"]');
+    console.log(`[Soulmark LinkedIn] Found ${buttonLists.length} button lists`);
+    
+    buttonLists.forEach(list => {
+      if (!list.querySelector('.soulmark-list-item')) {
+        console.log('[Soulmark LinkedIn] Adding soulmark button to carousel');
+        addSoulmarkToCarousel(list);
+      }
+    });
+    
+    // Also find the Post button in the modal footer
+    const postButtons = document.querySelectorAll('button[aria-label="Post"], .share-actions__primary-action');
+    console.log(`[Soulmark LinkedIn] Found ${postButtons.length} post buttons in modal`);
+    
+    // Also try to find by looking for buttons that contain "Post" text
+    const allButtons = document.querySelectorAll('button');
+    const postButtonsByText = Array.from(allButtons).filter(btn => 
+      btn.textContent.trim() === 'Post' && 
+      !btn.querySelector('.soulmark-button')
+    );
+    console.log(`[Soulmark LinkedIn] Found ${postButtonsByText.length} buttons with "Post" text`);
+    
+    // Use whichever we found
+    const finalPostButtons = postButtons.length > 0 ? postButtons : postButtonsByText;
+    
+    finalPostButtons.forEach(button => {
+      // Look for the actions container that holds the Post button
+      const actionsContainer = button.closest('.share-box_actions, .share-actions');
+      const container = actionsContainer || button.parentElement;
+      
+      if (container && !container.querySelector('.soulmark-button')) {
+        console.log('[Soulmark LinkedIn] Adding soulmark button to post modal');
+        // Insert before the Post button, not after
+        const soulmarkButton = createSoulmarkButtonElement(false);
+        container.insertBefore(soulmarkButton, button);
+      }
+    });
+  }
+  
+  // LinkedIn comment sections - look for ALL ql-editors that might be comments
+  const allEditors = document.querySelectorAll('.ql-editor[data-placeholder*="comment" i], .ql-editor[aria-placeholder*="comment" i]');
+  console.log(`[Soulmark LinkedIn] Found ${allEditors.length} comment editors (ql-editor)`);
+  
+  allEditors.forEach(editor => {
+    // Walk up the DOM to find the comment form structure
+    let current = editor;
+    let foundButton = false;
+    
+    // Go up max 10 levels to find a submit button
+    for (let i = 0; i < 10 && current && !foundButton; i++) {
+      current = current.parentElement;
+      if (!current) break;
+      
+      // Look for buttons in this container
+      const buttons = current.querySelectorAll('button');
+      buttons.forEach(button => {
+        // Check if this is likely a submit button
+        const buttonText = button.textContent.trim().toLowerCase();
+        const ariaLabel = (button.getAttribute('aria-label') || '').toLowerCase();
+        
+        if ((buttonText === 'post' || buttonText.includes('reply') || ariaLabel.includes('post') || ariaLabel.includes('reply')) &&
+            !button.closest('.soulmark-button') &&
+            !current.querySelector('.soulmark-button')) {
+          
+          console.log(`[Soulmark LinkedIn] Found comment button: "${buttonText}" with aria-label: "${ariaLabel}"`);
+          const container = button.parentElement;
+          
+          if (container) {
+            console.log('[Soulmark LinkedIn] Adding soulmark button to comment box');
+            createSoulmarkButton(container, button, true);
+            foundButton = true;
+          }
+        }
+      });
+    }
+  });
+  
+  // Also try a different approach - look for comment forms
+  const commentForms = document.querySelectorAll('form[class*="comment"], div[class*="comment-box"], div[class*="comments-comment"]');
+  console.log(`[Soulmark LinkedIn] Found ${commentForms.length} comment forms`);
+  
+  commentForms.forEach(form => {
+    if (form.querySelector('.soulmark-button')) return; // Already has button
+    
+    const buttons = form.querySelectorAll('button');
+    buttons.forEach(button => {
+      if (button.textContent.trim().toLowerCase() === 'post' && !button.parentElement.querySelector('.soulmark-button')) {
+        console.log('[Soulmark LinkedIn] Adding soulmark button to comment form button');
+        createSoulmarkButton(button.parentElement, button, true);
+      }
+    });
+  });
+}
+
+function addSoulmarkToCarousel(carousel) {
+  // Create a list item matching LinkedIn's structure
+  const li = document.createElement('li');
+  li.className = 'artdeco-carousel__item ember-view share-creation-state__promoted-detour-button-item soulmark-list-item';
+  li.style.width = '71.2px';
+  li.tabIndex = -1;
+  
+  li.innerHTML = `
+    <div data-test-display="display" class="artdeco-carousel__item-container">
+      <div>
+        <span class="artdeco-hoverable-trigger artdeco-hoverable-trigger--content-placed-top artdeco-hoverable-trigger--is-hoverable ember-view">
+          <button aria-label="Add soulmark verification" class="share-promoted-detour-button soulmark-carousel-button" type="button">
+            <span class="share-promoted-detour-button__icon-container">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke="#D4722C" stroke-width="2"/>
+                <circle cx="12" cy="12" r="4" fill="#D4722C"/>
+              </svg>
+            </span>
+          </button>
+        </span>
+      </div>
+    </div>
+  `;
+  
+  // Add click handler
+  const button = li.querySelector('.soulmark-carousel-button');
+  button.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleSoulmarkClick(false);
+  });
+  
+  // Monitor text for enabling/disabling
+  startMonitoringText(button, false);
+  
+  // Insert at the beginning of the carousel
+  carousel.insertBefore(li, carousel.firstChild);
+}
+
+function createSoulmarkButtonElement(isComment = false) {
+  const soulmarkButton = document.createElement('button');
+  soulmarkButton.className = 'soulmark-button soulmark-icon-only';
+  soulmarkButton.disabled = true;
+  soulmarkButton.title = 'Add a soulmark to verify you\'re human';
+  soulmarkButton.style.cssText = `
+    margin-right: 8px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  `;
+  soulmarkButton.innerHTML = `
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="1.5"/>
+      <circle cx="10" cy="10" r="4" fill="currentColor"/>
+    </svg>
+  `;
+  
+  soulmarkButton.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleSoulmarkClick(isComment);
+  });
+  
+  // Monitor text for changes
+  startMonitoringText(soulmarkButton, isComment);
+  
+  return soulmarkButton;
+}
+
+function createSoulmarkButton(parent, referenceButton, isComment = false) {
+  const soulmarkButton = createSoulmarkButtonElement(isComment);
+  // Insert before the post/comment button
+  parent.insertBefore(soulmarkButton, referenceButton);
+}
+
+function startMonitoringText(button, isComment) {
+  // Check text immediately
+  updateButtonState(button, isComment);
+  
+  // Set up interval to check periodically
+  const interval = setInterval(() => {
+    updateButtonState(button, isComment);
+  }, 200);
+  
+  // Store interval for cleanup
+  monitoringIntervals.set(button, interval);
+}
+
+function updateButtonState(button, isComment) {
+  const text = getLinkedInText(isComment);
+  if (!text) {
+    button.disabled = true;
+    button.classList.add('disabled');
+    return;
+  }
+  
+  // Check if we have enough meaningful words
+  const words = selectRandomWords(text, 3);
+  if (words.length >= 1) {
+    button.disabled = false;
+    button.classList.remove('disabled');
+  } else {
+    button.disabled = true;
+    button.classList.add('disabled');
+  }
+}
+
+function getLinkedInText(isComment = false) {
+  // Try different selectors for LinkedIn's editor
+  const selectors = isComment ? [
+    '.ql-editor[data-placeholder*="comment" i]',
+    '.comments-comment-box .ql-editor',
+    '.comment-box .ql-editor',
+    '.editor-content.ql-container .ql-editor',
+    '[aria-placeholder*="comment" i][contenteditable="true"]',
+    '[contenteditable="true"][role="textbox"]'
+  ] : [
+    '.share-creation-state__text-editor .ql-editor',
+    '.ql-editor[contenteditable="true"]:not([data-placeholder*="comment" i])',
+    '[contenteditable="true"][role="textbox"]:not([aria-placeholder*="comment" i])',
+    '.editor-content .ql-editor'
+  ];
+  
+  for (const selector of selectors) {
+    const elements = document.querySelectorAll(selector);
+    // Get the visible/active editor
+    for (const element of elements) {
+      if (element && element.offsetParent !== null) {
+        // LinkedIn uses Quill editor, need to get text without formatting
+        const text = element.textContent || element.innerText || '';
+        if (text.trim()) {
+          console.log(`[Soulmark LinkedIn] Found text in ${selector}: "${text.substring(0, 50)}..."`);
+          return text;
+        }
+      }
+    }
+  }
+  
+  console.log('[Soulmark LinkedIn] No text found in editors');
+  return null;
+}
+
+function handleSoulmarkClick(isComment = false) {
+  // Check if extension context is still valid
+  if (!chrome.runtime?.id) {
+    console.error('[Soulmark] Extension context invalidated. Please refresh the page.');
+    alert('Soulmark extension was updated. Please refresh the page to continue.');
+    return;
+  }
+  
+  // Find the text
+  const text = getLinkedInText(isComment);
+  if (!text) {
+    console.error('Could not find LinkedIn text');
+    return;
+  }
+  
+  // Select random meaningful words
+  const words = selectRandomWords(text, 3);
+  if (words.length === 0) {
+    console.error('No meaningful words found in post');
+    return;
+  }
+  
+  try {
+    // Send message to background script to open popup
+    chrome.runtime.sendMessage({
+      action: 'openSoulmarkPopup',
+      data: {
+        text: text,
+        words: words,
+        platform: 'linkedin'
+      }
+    }, response => {
+      if (chrome.runtime.lastError) {
+        console.error('[Soulmark] Error:', chrome.runtime.lastError.message);
+        alert('Soulmark extension needs to be reloaded. Please refresh the page.');
+      }
+    });
+  } catch (error) {
+    console.error('[Soulmark] Failed to send message:', error);
+    alert('Soulmark extension was updated. Please refresh the page to continue.');
+  }
+}
+
+function selectRandomWords(text, count) {
+  // Split text into words and filter out common ones
+  const words = text.split(/\s+/)
+    .map(word => word.replace(/[.,!?;:'"()[\]{}]/g, '').toLowerCase())
+    .filter(word => word.length > 2 && !COMMON_WORDS.has(word));
+  
+  // Remove duplicates
+  const uniqueWords = [...new Set(words)];
+  
+  // If we have fewer unique words than requested, return all
+  if (uniqueWords.length <= count) {
+    return uniqueWords;
+  }
+  
+  // Randomly select words
+  const selected = [];
+  const indices = new Set();
+  
+  while (selected.length < count && indices.size < uniqueWords.length) {
+    const index = Math.floor(Math.random() * uniqueWords.length);
+    if (!indices.has(index)) {
+      indices.add(index);
+      selected.push(uniqueWords[index]);
+    }
+  }
+  
+  return selected;
+}
+
+// Listen for messages from background script
+if (chrome.runtime?.id) {
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === 'insertSoulmark') {
+      insertSoulmarkCode(request.code);
+      sendResponse({ success: true });
+    }
+  });
+}
+
+// Insert the soulmark code into LinkedIn post/comment
+function insertSoulmarkCode(code) {
+  const selectors = [
+    '.share-creation-state__text-editor .ql-editor',
+    '.comments-comment-box__form .ql-editor',
+    '.ql-editor[contenteditable="true"]',
+    '[contenteditable="true"][role="textbox"]'
+  ];
+  
+  let inserted = false;
+  
+  for (const selector of selectors) {
+    const element = document.querySelector(selector);
+    if (element && element.isContentEditable) {
+      // Focus the element
+      element.focus();
+      
+      // Get current content
+      const currentText = element.textContent || '';
+      const soulmarkText = ` [SM:${code}]`;
+      
+      // Insert at the end
+      element.textContent = currentText + soulmarkText;
+      
+      // Trigger input event for LinkedIn
+      element.dispatchEvent(new Event('input', { bubbles: true }));
+      element.dispatchEvent(new Event('change', { bubbles: true }));
+      
+      // For Quill editor, might need to trigger specific events
+      const event = new InputEvent('input', {
+        bubbles: true,
+        cancelable: true,
+        data: soulmarkText
+      });
+      element.dispatchEvent(event);
+      
+      inserted = true;
+      break;
+    }
+  }
+  
+  if (!inserted) {
+    console.error('[Soulmark] Could not insert code into LinkedIn editor');
+  }
+}
+
+// Scan for soulmark codes in LinkedIn posts
+async function scanForSoulmarks() {
+  const soulmarkPattern = /\[SM:([a-z0-9]{7})\]/gi;
+  
+  // Find all post/comment text elements
+  const textSelectors = [
+    '.feed-shared-text', // Main feed posts
+    '.comment-item__main-content', // Comments
+    '.feed-shared-update-v2__description', // Alternative post selector
+    'span[dir="ltr"]' // Generic text spans
+  ];
+  
+  const textElements = [];
+  textSelectors.forEach(selector => {
+    textElements.push(...document.querySelectorAll(selector));
+  });
+  
+  for (const element of textElements) {
+    // Skip if already processed
+    if (element.hasAttribute('data-soulmark-scanned')) continue;
+    element.setAttribute('data-soulmark-scanned', 'true');
+    
+    const text = element.textContent;
+    const matches = [...text.matchAll(soulmarkPattern)];
+    
+    for (const match of matches) {
+      const fullCode = match[0]; // [SM:xxxxx]
+      const codeOnly = match[1]; // xxxxx
+      
+      // Verify and replace
+      const verification = await verifySoulmark(fullCode);
+      if (verification && verification.valid) {
+        replaceSoulmarkCode(element, fullCode, codeOnly, verification);
+        addVerificationBadge(element, verification);
+      }
+    }
+  }
+}
+
+// Verify soulmark (simplified version - shared code would be better)
+async function verifySoulmark(code) {
+  try {
+    const config = await getConfig();
+    const cleanCode = code.replace(/^\[SM:/i, '').replace(/\]$/, '');
+    
+    const response = await fetch(
+      `${config.SUPABASE_URL}/functions/v1/check-soulmark?code=${encodeURIComponent(cleanCode)}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${config.SUPABASE_ANON_KEY}`,
+        }
+      }
+    );
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error verifying soulmark:', error);
+    return { valid: false };
+  }
+}
+
+// Get config from background script
+async function getConfig() {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage({ action: 'getConfig' }, (response) => {
+      if (response && response.config) {
+        resolve(response.config);
+      }
+    });
+  });
+}
+
+// Replace soulmark code with indicator
+function replaceSoulmarkCode(element, fullCode, codeOnly, verification) {
+  const html = element.innerHTML;
+  const indicator = `<span class="soulmark-indicator" data-code="${codeOnly}" title="Soulmark verified ${verification.age}">◉</span>`;
+  element.innerHTML = html.replace(fullCode, indicator);
+  
+  // Add click handler
+  const indicatorElement = element.querySelector(`.soulmark-indicator[data-code="${codeOnly}"]`);
+  if (indicatorElement) {
+    indicatorElement.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showSoulmarkDetails(codeOnly, verification);
+    });
+  }
+}
+
+// Add verification badge to LinkedIn post
+function addVerificationBadge(textElement, verification) {
+  // Find the parent post container
+  const postContainer = textElement.closest('.feed-shared-update-v2') || 
+                       textElement.closest('.comment-item');
+  if (!postContainer) return;
+  
+  // Find the actions bar
+  const actionsBar = postContainer.querySelector('.social-actions-bar') || 
+                    postContainer.querySelector('.comment-item__actions');
+  if (!actionsBar || actionsBar.querySelector('.soulmark-badge')) return;
+  
+  // Create verification badge
+  const badge = document.createElement('div');
+  badge.className = 'soulmark-badge';
+  badge.style.cssText = `
+    display: inline-flex;
+    align-items: center;
+    margin: 0 8px;
+    cursor: pointer;
+  `;
+  badge.innerHTML = `
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="9" cy="9" r="8" stroke="#D4722C" stroke-width="1.5"/>
+      <circle cx="9" cy="9" r="3.5" fill="#D4722C"/>
+    </svg>
+  `;
+  
+  badge.title = `Verified human ${verification.age} • ${verification.wordCount} words spoken`;
+  
+  // Insert at the beginning of actions
+  actionsBar.insertBefore(badge, actionsBar.firstChild);
+}
+
+// Show soulmark details tooltip
+function showSoulmarkDetails(code, verification) {
+  // Remove any existing tooltip
+  const existingTooltip = document.querySelector('.soulmark-tooltip');
+  if (existingTooltip) {
+    existingTooltip.remove();
+  }
+  
+  // Create tooltip
+  const tooltip = document.createElement('div');
+  tooltip.className = 'soulmark-tooltip';
+  tooltip.innerHTML = `
+    <div class="soulmark-tooltip-header">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="10" cy="10" r="9" stroke="#D4722C" stroke-width="2"/>
+        <circle cx="10" cy="10" r="4" fill="#D4722C"/>
+      </svg>
+      <strong>Soulmark Verified</strong>
+    </div>
+    <div class="soulmark-tooltip-content">
+      <p>Human verified ${verification.age}</p>
+      <p>${verification.wordCount} words spoken</p>
+      <p class="soulmark-code">Code: SM:${code}</p>
+    </div>
+  `;
+  
+  document.body.appendChild(tooltip);
+  
+  // Remove on click outside
+  setTimeout(() => {
+    document.addEventListener('click', function removeTooltip() {
+      tooltip.remove();
+      document.removeEventListener('click', removeTooltip);
+    });
+  }, 100);
+}
+
+// Observe for new posts/comments
+function observeNewContent() {
+  const observer = new MutationObserver((mutations) => {
+    // Debounce scanning
+    clearTimeout(observeNewContent.timeout);
+    observeNewContent.timeout = setTimeout(() => {
+      scanForSoulmarks();
+      // Also rescan for new comment boxes
+      scanForPostAreas();
+    }, 500);
+    
+    // Quick check for new comment editors
+    mutations.forEach(mutation => {
+      mutation.addedNodes.forEach(node => {
+        if (node.nodeType === 1) { // Element node
+          // Check if this is or contains a comment editor
+          const editors = node.querySelectorAll ? 
+            node.querySelectorAll('.ql-editor[data-placeholder*="comment" i], .ql-editor[aria-placeholder*="comment" i]') : [];
+          if (editors.length > 0 || (node.classList && node.classList.contains('ql-editor'))) {
+            console.log('[Soulmark LinkedIn] New comment editor detected, scanning...');
+            clearTimeout(observeNewContent.quickTimeout);
+            observeNewContent.quickTimeout = setTimeout(() => {
+              scanForPostAreas();
+            }, 100);
+          }
+        }
+      });
+    });
+  });
+  
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['data-placeholder', 'aria-placeholder']
+  });
+}
+
+// Initialize when DOM is ready
+console.log('[Soulmark LinkedIn] Script loaded on:', window.location.href);
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log('[Soulmark LinkedIn] DOM loaded, initializing...');
+    injectSoulmarkButton();
+    scanForSoulmarks();
+    observeNewContent();
+  });
+} else {
+  console.log('[Soulmark LinkedIn] DOM already loaded, initializing...');
+  injectSoulmarkButton();
+  scanForSoulmarks();
+  observeNewContent();
+}
+</file>
+
+<file path="marketing/marquee_promo_1400x560.svg">
+<svg width="1400" height="560" viewBox="0 0 1400 560" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1400" height="560" fill="url(#gradient2)"/>
+  
+  <!-- Background decorative circles -->
+  <circle cx="200" cy="280" r="200" fill="#D4722C" opacity="0.05"/>
+  <circle cx="1200" cy="280" r="150" fill="#D4722C" opacity="0.05"/>
+  
+  <!-- Main icon -->
+  <circle cx="250" cy="280" r="100" stroke="#D4722C" stroke-width="12"/>
+  <circle cx="250" cy="280" r="45" fill="#D4722C"/>
+  
+  <!-- Main text -->
+  <text x="420" y="220" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="72" font-weight="bold" fill="#2C1810">Soulmark</text>
+  <text x="420" y="280" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="36" fill="#5A3A2A">Human Verification for Social Media</text>
+  
+  <!-- Features -->
+  <text x="420" y="350" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="24" fill="#5A3A2A">✓ 2-second voice verification</text>
+  <text x="420" y="385" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="24" fill="#5A3A2A">✓ Works on X &amp; LinkedIn</text>
+  <text x="420" y="420" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="24" fill="#5A3A2A">✓ No crypto wallets needed</text>
+  
+  <!-- Call to action -->
+  <text x="900" y="480" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="28" font-weight="bold" fill="#D4722C">Reclaim social media from bots</text>
+  
+  <!-- Decorative elements -->
+  <circle cx="1100" cy="150" r="25" stroke="#D4722C" stroke-width="3" opacity="0.3"/>
+  <circle cx="1100" cy="150" r="10" fill="#D4722C" opacity="0.3"/>
+  <circle cx="1180" cy="200" r="25" stroke="#D4722C" stroke-width="3" opacity="0.3"/>
+  <circle cx="1180" cy="200" r="10" fill="#D4722C" opacity="0.3"/>
+  <circle cx="1260" cy="250" r="25" stroke="#D4722C" stroke-width="3" opacity="0.3"/>
+  <circle cx="1260" cy="250" r="10" fill="#D4722C" opacity="0.3"/>
+  
+  <defs>
+    <linearGradient id="gradient2" x1="0" y1="0" x2="1400" y2="560" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF8F0"/>
+      <stop offset="0.5" stop-color="#FFEDE0"/>
+      <stop offset="1" stop-color="#FFF8F0"/>
+    </linearGradient>
+  </defs>
+</svg>
+</file>
+
+<file path="marketing/small_promo_440x280.svg">
+<svg width="440" height="280" viewBox="0 0 440 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="440" height="280" fill="url(#gradient1)"/>
+  
+  <!-- Large icon -->
+  <circle cx="100" cy="140" r="60" stroke="#D4722C" stroke-width="8"/>
+  <circle cx="100" cy="140" r="25" fill="#D4722C"/>
+  
+  <!-- Text -->
+  <text x="180" y="120" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="36" font-weight="bold" fill="#2C1810">Soulmark</text>
+  <text x="180" y="155" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="22" fill="#5A3A2A">Prove You're Human</text>
+  <text x="180" y="185" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="22" fill="#5A3A2A">Speak to Verify</text>
+  <text x="180" y="220" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="14" fill="#8A7A6A">Combat bots with voice verification</text>
+  
+  <defs>
+    <linearGradient id="gradient1" x1="0" y1="0" x2="440" y2="280" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF8F0"/>
+      <stop offset="1" stop-color="#FFEDE0"/>
+    </linearGradient>
+  </defs>
+</svg>
+</file>
+
+<file path="shared/soulmark-core.js">
+// Shared Soulmark functionality that works across all platforms
+
+// Common words to skip when selecting words for verification
+export const COMMON_WORDS = new Set([
+  'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+  'of', 'with', 'by', 'from', 'up', 'about', 'into', 'through', 'during',
+  'before', 'after', 'above', 'below', 'between', 'under', 'is', 'are',
+  'was', 'were', 'been', 'being', 'have', 'has', 'had', 'do', 'does',
+  'did', 'will', 'would', 'should', 'could', 'may', 'might', 'must',
+  'can', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she',
+  'it', 'we', 'they', 'them', 'their', 'what', 'which', 'who', 'when',
+  'where', 'why', 'how', 'all', 'each', 'every', 'some', 'any', 'few',
+  'more', 'most', 'other', 'such', 'only', 'own', 'same', 'so', 'than',
+  'too', 'very', 'just', 'my', 'your', 'his', 'her', 'its', 'our'
+]);
+
+// Select random meaningful words from text
+export function selectRandomWords(text, count) {
+  // Split text into words and filter out common ones
+  const words = text.split(/\s+/)
+    .map(word => word.replace(/[.,!?;:'"()[\]{}]/g, '').toLowerCase())
+    .filter(word => word.length > 2 && !COMMON_WORDS.has(word));
+  
+  // Remove duplicates
+  const uniqueWords = [...new Set(words)];
+  
+  // If we have fewer unique words than requested, return all
+  if (uniqueWords.length <= count) {
+    return uniqueWords;
+  }
+  
+  // Randomly select words
+  const selected = [];
+  const indices = new Set();
+  
+  while (selected.length < count && indices.size < uniqueWords.length) {
+    const index = Math.floor(Math.random() * uniqueWords.length);
+    if (!indices.has(index)) {
+      indices.add(index);
+      selected.push(uniqueWords[index]);
+    }
+  }
+  
+  return selected;
+}
+
+// Open soulmark popup with data
+export function openSoulmarkPopup(text, words) {
+  // Check if extension context is still valid
+  if (!chrome.runtime?.id) {
+    console.error('[Soulmark] Extension context invalidated. Please refresh the page.');
+    alert('Soulmark extension was updated. Please refresh the page to continue.');
+    return;
+  }
+  
+  try {
+    // Send message to background script to open popup
+    chrome.runtime.sendMessage({
+      action: 'openSoulmarkPopup',
+      data: {
+        text: text,
+        words: words
+      }
+    }, response => {
+      if (chrome.runtime.lastError) {
+        console.error('[Soulmark] Error:', chrome.runtime.lastError.message);
+        alert('Soulmark extension needs to be reloaded. Please refresh the page.');
+      }
+    });
+  } catch (error) {
+    console.error('[Soulmark] Failed to send message:', error);
+    alert('Soulmark extension was updated. Please refresh the page to continue.');
+  }
+}
+
+// Cache for verification results
+const verificationCache = new Map();
+
+// Verify a soulmark code
+export async function verifySoulmark(code) {
+  // Check cache first
+  if (verificationCache.has(code)) {
+    return verificationCache.get(code);
+  }
+  
+  try {
+    // Load config if not already loaded
+    if (typeof CONFIG === 'undefined') {
+      await loadConfig();
+    }
+    
+    // Remove brackets and SM: prefix for API call
+    const cleanCode = code.replace(/^\[SM:/i, '').replace(/\]$/, '');
+    
+    const response = await fetch(
+      `${CONFIG.SUPABASE_URL}/functions/v1/check-soulmark?code=${encodeURIComponent(cleanCode)}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+        }
+      }
+    );
+    
+    const result = await response.json();
+    
+    // Cache the result
+    verificationCache.set(code, result);
+    
+    // Clear cache after 5 minutes
+    setTimeout(() => verificationCache.delete(code), 5 * 60 * 1000);
+    
+    return result;
+  } catch (error) {
+    console.error('Error verifying soulmark:', error);
+    return { valid: false, error: 'Verification failed' };
+  }
+}
+
+// Load config dynamically
+export async function loadConfig() {
+  return new Promise((resolve) => {
+    if (!chrome.runtime?.id) {
+      console.error('[Soulmark] Extension context not available');
+      resolve();
+      return;
+    }
+    
+    try {
+      chrome.runtime.sendMessage({ action: 'getConfig' }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error('[Soulmark] Error loading config:', chrome.runtime.lastError.message);
+        } else if (response && response.config) {
+          window.CONFIG = response.config;
+        }
+        resolve();
+      });
+    } catch (error) {
+      console.error('[Soulmark] Failed to load config:', error);
+      resolve();
+    }
+  });
+}
+
+// Listen for soulmark completion messages
+export function setupSoulmarkListener(insertCallback) {
+  if (chrome.runtime?.id) {
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+      if (request.action === 'insertSoulmark') {
+        insertCallback(request.code);
+        sendResponse({ success: true });
+      }
+    });
+  }
+}
+
+// Create soulmark icon SVG
+export function createSoulmarkIcon(size = 20) {
+  return `
+    <svg width="${size}" height="${size}" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="1.5"/>
+      <circle cx="10" cy="10" r="4" fill="currentColor"/>
+    </svg>
+  `;
+}
+
+// Show soulmark details in a tooltip
+export function showSoulmarkDetails(code, verification, event) {
+  // Remove any existing tooltip
+  const existingTooltip = document.querySelector('.soulmark-tooltip');
+  if (existingTooltip) {
+    existingTooltip.remove();
+  }
+  
+  // Create tooltip
+  const tooltip = document.createElement('div');
+  tooltip.className = 'soulmark-tooltip';
+  tooltip.innerHTML = `
+    <div class="soulmark-tooltip-header">
+      ${createSoulmarkIcon()}
+      <strong>Soulmark Verified</strong>
+    </div>
+    <div class="soulmark-tooltip-content">
+      <p>Human verified ${verification.age}</p>
+      <p>${verification.wordCount} words spoken</p>
+      <p class="soulmark-code">Code: SM:${code}</p>
+    </div>
+  `;
+  
+  // Position near cursor
+  document.body.appendChild(tooltip);
+  
+  // Remove on click outside
+  setTimeout(() => {
+    document.addEventListener('click', function removeTooltip() {
+      tooltip.remove();
+      document.removeEventListener('click', removeTooltip);
+    });
+  }, 100);
+}
+</file>
+
+<file path="create_promo_tiles.html">
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Soulmark Promo Tiles</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f0f0f0;
+            padding: 20px;
+        }
+        canvas {
+            display: block;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .download-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #D4722C;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Soulmark Promo Tiles</h1>
+    
+    <h2>Small Promo Tile (440x280)</h2>
+    <canvas id="small" width="440" height="280"></canvas>
+    <a id="small-download" class="download-btn" download="soulmark-promo-small.png">Download Small Tile</a>
+    
+    <h2>Marquee Promo Tile (1400x560)</h2>
+    <canvas id="marquee" width="1400" height="560"></canvas>
+    <a id="marquee-download" class="download-btn" download="soulmark-promo-marquee.png">Download Marquee Tile</a>
+
+    <script>
+        function drawSmallPromo() {
+            const canvas = document.getElementById('small');
+            const ctx = canvas.getContext('2d');
+            
+            // Gradient background
+            const gradient = ctx.createLinearGradient(0, 0, 440, 280);
+            gradient.addColorStop(0, '#FFF8F0');
+            gradient.addColorStop(1, '#FFEDE0');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 440, 280);
+            
+            // Draw large icon
+            ctx.strokeStyle = '#D4722C';
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.arc(100, 140, 60, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            ctx.fillStyle = '#D4722C';
+            ctx.beginPath();
+            ctx.arc(100, 140, 25, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Text
+            ctx.fillStyle = '#2C1810';
+            ctx.font = 'bold 36px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.fillText('Soulmark', 180, 120);
+            
+            ctx.font = '22px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.fillStyle = '#5A3A2A';
+            ctx.fillText('Prove You\'re Human', 180, 155);
+            ctx.fillText('Speak to Verify', 180, 185);
+            
+            // Small tagline
+            ctx.font = '14px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.fillStyle = '#8A7A6A';
+            ctx.fillText('Combat bots with voice verification', 180, 220);
+            
+            // Convert to downloadable link
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                document.getElementById('small-download').href = url;
+            });
+        }
+        
+        function drawMarqueePromo() {
+            const canvas = document.getElementById('marquee');
+            const ctx = canvas.getContext('2d');
+            
+            // Gradient background
+            const gradient = ctx.createLinearGradient(0, 0, 1400, 560);
+            gradient.addColorStop(0, '#FFF8F0');
+            gradient.addColorStop(0.5, '#FFEDE0');
+            gradient.addColorStop(1, '#FFF8F0');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, 1400, 560);
+            
+            // Large decorative circles in background
+            ctx.globalAlpha = 0.05;
+            ctx.fillStyle = '#D4722C';
+            ctx.beginPath();
+            ctx.arc(200, 280, 200, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(1200, 280, 150, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+            
+            // Main icon
+            ctx.strokeStyle = '#D4722C';
+            ctx.lineWidth = 12;
+            ctx.beginPath();
+            ctx.arc(250, 280, 100, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            ctx.fillStyle = '#D4722C';
+            ctx.beginPath();
+            ctx.arc(250, 280, 45, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Main text
+            ctx.fillStyle = '#2C1810';
+            ctx.font = 'bold 72px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.fillText('Soulmark', 420, 220);
+            
+            ctx.font = '36px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.fillStyle = '#5A3A2A';
+            ctx.fillText('Human Verification for Social Media', 420, 280);
+            
+            // Feature points
+            ctx.font = '24px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.fillStyle = '#5A3A2A';
+            const features = [
+                '✓ 2-second voice verification',
+                '✓ Works on X & LinkedIn',
+                '✓ No crypto wallets needed'
+            ];
+            
+            features.forEach((feature, i) => {
+                ctx.fillText(feature, 420, 350 + (i * 35));
+            });
+            
+            // Call to action
+            ctx.font = 'bold 28px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.fillStyle = '#D4722C';
+            ctx.fillText('Reclaim social media from bots', 900, 480);
+            
+            // Small icons on the right
+            for (let i = 0; i < 3; i++) {
+                ctx.strokeStyle = '#D4722C';
+                ctx.lineWidth = 3;
+                ctx.globalAlpha = 0.3;
+                ctx.beginPath();
+                ctx.arc(1100 + (i * 80), 150 + (i * 50), 25, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.fillStyle = '#D4722C';
+                ctx.beginPath();
+                ctx.arc(1100 + (i * 80), 150 + (i * 50), 10, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+            
+            // Convert to downloadable link
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                document.getElementById('marquee-download').href = url;
+            });
+        }
+        
+        // Draw both tiles
+        drawSmallPromo();
+        drawMarqueePromo();
+    </script>
+</body>
+</html>
+</file>
+
+<file path="generate_icons.py">
+#!/usr/bin/env python3
+"""Generate Soulmark icons in different sizes"""
+
+import os
+
+# Create a simple SVG icon
+svg_template = '''<svg width="{size}" height="{size}" viewBox="0 0 {size} {size}" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="{size}" height="{size}" fill="#FFFEF7"/>
+  <circle cx="{center}" cy="{center}" r="{outer_r}" stroke="#D4722C" stroke-width="{stroke}"/>
+  <circle cx="{center}" cy="{center}" r="{inner_r}" fill="#D4722C"/>
+</svg>'''
+
+sizes = [16, 48, 128]
+
+for size in sizes:
+    center = size / 2
+    outer_r = size * 0.4
+    inner_r = size * 0.18
+    stroke = max(1.5, size * 0.08)
+    
+    svg_content = svg_template.format(
+        size=size,
+        center=center,
+        outer_r=outer_r,
+        inner_r=inner_r,
+        stroke=stroke
+    )
+    
+    # Save SVG file
+    svg_path = f'assets/icon-{size}.svg'
+    with open(svg_path, 'w') as f:
+        f.write(svg_content)
+    print(f"Created {svg_path}")
+    
+    # Try to convert to PNG using system tools
+    png_path = f'assets/icon-{size}.png'
+    
+    # Try different conversion methods
+    conversion_commands = [
+        f'rsvg-convert -w {size} -h {size} {svg_path} -o {png_path}',
+        f'convert -background none -resize {size}x{size} {svg_path} {png_path}',
+        f'qlmanage -t -s {size} -o assets {svg_path} && mv assets/{os.path.basename(svg_path)}.png {png_path}'
+    ]
+    
+    for cmd in conversion_commands:
+        if os.system(cmd) == 0:
+            print(f"Converted to {png_path}")
+            break
+    else:
+        print(f"Could not convert {svg_path} to PNG - you'll need to convert manually")
+
+print("\nIcons generated! If PNG conversion failed, you can:")
+print("1. Open the SVG files in any image editor and export as PNG")
+print("2. Use an online converter like cloudconvert.com")
+print("3. Open generate-icons.html in a browser and save the canvas images")
+</file>
+
+<file path="generate_promo_tiles.py">
+#!/usr/bin/env python3
+"""Generate promotional tiles for Chrome Web Store"""
+
+import os
+
+# Create marketing directory
+os.makedirs("marketing", exist_ok=True)
+
+# Small promo tile SVG (440x280)
+small_promo_svg = '''<svg width="440" height="280" viewBox="0 0 440 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="440" height="280" fill="url(#gradient1)"/>
+  
+  <!-- Large icon -->
+  <circle cx="100" cy="140" r="60" stroke="#D4722C" stroke-width="8"/>
+  <circle cx="100" cy="140" r="25" fill="#D4722C"/>
+  
+  <!-- Text -->
+  <text x="180" y="120" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="36" font-weight="bold" fill="#2C1810">Soulmark</text>
+  <text x="180" y="155" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="22" fill="#5A3A2A">Prove You're Human</text>
+  <text x="180" y="185" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="22" fill="#5A3A2A">Speak to Verify</text>
+  <text x="180" y="220" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="14" fill="#8A7A6A">Combat bots with voice verification</text>
+  
+  <defs>
+    <linearGradient id="gradient1" x1="0" y1="0" x2="440" y2="280" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF8F0"/>
+      <stop offset="1" stop-color="#FFEDE0"/>
+    </linearGradient>
+  </defs>
+</svg>'''
+
+# Marquee promo tile SVG (1400x560)
+marquee_promo_svg = '''<svg width="1400" height="560" viewBox="0 0 1400 560" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1400" height="560" fill="url(#gradient2)"/>
+  
+  <!-- Background decorative circles -->
+  <circle cx="200" cy="280" r="200" fill="#D4722C" opacity="0.05"/>
+  <circle cx="1200" cy="280" r="150" fill="#D4722C" opacity="0.05"/>
+  
+  <!-- Main icon -->
+  <circle cx="250" cy="280" r="100" stroke="#D4722C" stroke-width="12"/>
+  <circle cx="250" cy="280" r="45" fill="#D4722C"/>
+  
+  <!-- Main text -->
+  <text x="420" y="220" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="72" font-weight="bold" fill="#2C1810">Soulmark</text>
+  <text x="420" y="280" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="36" fill="#5A3A2A">Human Verification for Social Media</text>
+  
+  <!-- Features -->
+  <text x="420" y="350" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="24" fill="#5A3A2A">✓ 2-second voice verification</text>
+  <text x="420" y="385" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="24" fill="#5A3A2A">✓ Works on X &amp; LinkedIn</text>
+  <text x="420" y="420" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="24" fill="#5A3A2A">✓ No crypto wallets needed</text>
+  
+  <!-- Call to action -->
+  <text x="900" y="480" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="28" font-weight="bold" fill="#D4722C">Reclaim social media from bots</text>
+  
+  <!-- Decorative elements -->
+  <circle cx="1100" cy="150" r="25" stroke="#D4722C" stroke-width="3" opacity="0.3"/>
+  <circle cx="1100" cy="150" r="10" fill="#D4722C" opacity="0.3"/>
+  <circle cx="1180" cy="200" r="25" stroke="#D4722C" stroke-width="3" opacity="0.3"/>
+  <circle cx="1180" cy="200" r="10" fill="#D4722C" opacity="0.3"/>
+  <circle cx="1260" cy="250" r="25" stroke="#D4722C" stroke-width="3" opacity="0.3"/>
+  <circle cx="1260" cy="250" r="10" fill="#D4722C" opacity="0.3"/>
+  
+  <defs>
+    <linearGradient id="gradient2" x1="0" y1="0" x2="1400" y2="560" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF8F0"/>
+      <stop offset="0.5" stop-color="#FFEDE0"/>
+      <stop offset="1" stop-color="#FFF8F0"/>
+    </linearGradient>
+  </defs>
+</svg>'''
+
+# Save SVG files
+with open('marketing/small_promo_440x280.svg', 'w') as f:
+    f.write(small_promo_svg)
+print("Created marketing/small_promo_440x280.svg")
+
+with open('marketing/marquee_promo_1400x560.svg', 'w') as f:
+    f.write(marquee_promo_svg)
+print("Created marketing/marquee_promo_1400x560.svg")
+
+# Try to convert to PNG
+import subprocess
+
+conversions = [
+    ('marketing/small_promo_440x280.svg', 'marketing/small_promo_440x280.png', '440x280'),
+    ('marketing/marquee_promo_1400x560.svg', 'marketing/marquee_promo_1400x560.png', '1400x560')
+]
+
+for svg_file, png_file, size in conversions:
+    cmd = [
+        'magick', svg_file,
+        '-background', 'white',
+        '-alpha', 'remove',
+        png_file
+    ]
+    
+    try:
+        subprocess.run(cmd, check=True)
+        print(f"✅ Converted to {png_file}")
+    except:
+        # Try alternative
+        alt_cmd = [
+            'convert', svg_file,
+            '-background', 'white', 
+            '-alpha', 'remove',
+            png_file
+        ]
+        try:
+            subprocess.run(alt_cmd, check=True)
+            print(f"✅ Converted to {png_file}")
+        except:
+            print(f"⚠️  Could not convert {svg_file} - use the HTML file or an online converter")
+
+print("\n🎨 Marketing materials ready!")
+print("- Small promo tile: marketing/small_promo_440x280.png")
+print("- Marquee tile: marketing/marquee_promo_1400x560.png")
+print("\nIf PNG conversion failed, open create_promo_tiles.html in a browser to download them.")
+</file>
+
+<file path="generate-icons.html">
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Soulmark Icon Generator</title>
+</head>
+<body>
+    <h1>Soulmark Icons</h1>
+    <p>Right-click and save each icon:</p>
+    
+    <h2>128x128</h2>
+    <canvas id="icon128" width="128" height="128"></canvas>
+    
+    <h2>48x48</h2>
+    <canvas id="icon48" width="48" height="48"></canvas>
+    
+    <h2>16x16</h2>
+    <canvas id="icon16" width="16" height="16"></canvas>
+
+    <script>
+        function drawIcon(canvasId, size) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            // Background
+            ctx.fillStyle = '#FFFEF7';
+            ctx.fillRect(0, 0, size, size);
+            
+            // Outer circle
+            ctx.strokeStyle = '#D4722C';
+            ctx.lineWidth = size * 0.08;
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, size * 0.4, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Inner circle
+            ctx.fillStyle = '#D4722C';
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, size * 0.18, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Convert to PNG and download
+            canvas.toBlob(function(blob) {
+                const link = document.createElement('a');
+                link.download = `icon-${size}.png`;
+                link.href = URL.createObjectURL(blob);
+                link.textContent = `Download ${size}x${size}`;
+                canvas.parentNode.appendChild(document.createElement('br'));
+                canvas.parentNode.appendChild(link);
+            });
+        }
+        
+        // Generate all icons
+        drawIcon('icon128', 128);
+        drawIcon('icon48', 48);
+        drawIcon('icon16', 16);
+    </script>
+</body>
+</html>
+</file>
+
+<file path="package.sh">
+#!/bin/bash
+
+# Package Soulmark for Chrome Web Store
+
+echo "🚀 Packaging Soulmark for Chrome Web Store..."
+
+# Create dist directory
+mkdir -p dist
+
+# Create a clean copy without development files
+rsync -av --progress . dist/soulmark-extension \
+  --exclude 'dist' \
+  --exclude '.git' \
+  --exclude '.gitignore' \
+  --exclude 'node_modules' \
+  --exclude '*.md' \
+  --exclude 'package.sh' \
+  --exclude '.DS_Store' \
+  --exclude 'config.js' \
+  --exclude 'supabase'
+
+# Create config.js.example
+echo "// Rename this to config.js and add your Supabase credentials
+const CONFIG = {
+  SUPABASE_URL: 'YOUR_SUPABASE_URL',
+  SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY'
+};" > dist/soulmark-extension/config.js.example
+
+# Zip it up
+cd dist
+zip -r soulmark-extension.zip soulmark-extension
+
+echo "✅ Package created: dist/soulmark-extension.zip"
+echo "📦 Size: $(du -h soulmark-extension.zip | cut -f1)"
+echo ""
+echo "Next steps:"
+echo "1. Create icons in assets/ folder (16x16, 48x48, 128x128)"
+echo "2. Take screenshots of the extension in action"
+echo "3. Upload to https://chrome.google.com/webstore/devconsole"
+</file>
+
+<file path="PRIVACY_JUSTIFICATIONS.md">
+# Chrome Web Store Privacy Justifications
+
+## Single Purpose Description
+This extension adds human verification to social media posts by requiring users to speak words from their content, creating cryptographic proof of human authorship.
+
+## Permission Justifications
+
+### activeTab
+**Justification:** Required to inject the Soulmark button into the active tab when users are on supported social media platforms (X.com and LinkedIn). The extension only interacts with the page content to add UI elements and read post text.
+
+### Host Permissions (x.com, twitter.com, linkedin.com)
+**Justification:** Needed to inject content scripts that add the Soulmark button to post creation areas, detect existing soulmark codes in posts, and display verification badges. The extension only runs on these specific social media platforms where users create content.
+
+### Storage
+**Justification:** Used to store user preferences including selected microphone device, theme preference (light/dark mode), and temporary caching of verification results to reduce API calls. No personal data or post content is permanently stored.
+
+### Remote Code
+**Justification:** The extension makes API calls to Supabase Edge Functions for voice transcription using OpenAI Whisper API and to verify soulmark codes. Audio is processed server-side for transcription only and immediately deleted. No user data is retained on servers.
+
+## Data Usage Disclosure
+
+### What data is collected?
+- Temporary audio recordings (deleted immediately after transcription)
+- Post text snippets (only the selected words for verification)
+- Anonymous soulmark codes
+
+### How is data used?
+- Audio is transcribed to verify spoken words match post content
+- Soulmark codes are generated and stored to enable verification
+- No personal information is collected or associated with soulmarks
+
+### Data sharing
+- Audio is sent to OpenAI Whisper API for transcription only
+- No data is sold or shared with third parties
+- All verification data is anonymous
+
+## Privacy Practices Certification
+✓ This extension complies with Chrome Web Store Developer Program Policies
+✓ No personal data is collected without user consent
+✓ Users explicitly trigger voice recording by clicking the Soulmark button
+✓ All data handling is transparent and minimal
+</file>
+
+<file path="PRIVACY.md">
+# Privacy Policy for Soulmark
+
+*Last updated: January 6, 2025*
+
+## Overview
+
+Soulmark ("we", "our", or "the extension") is committed to protecting your privacy. This privacy policy explains how our browser extension handles your data when you use our human verification service on social media platforms.
+
+## What We Collect
+
+### Temporary Data (Immediately Deleted)
+- **Voice Recordings**: When you click the Soulmark button and speak, we temporarily capture audio to verify you're human. This audio is immediately deleted after transcription.
+- **Selected Text**: We extract 1-3 words from your post for verification purposes only.
+
+### Stored Data
+- **Soulmark Codes**: Anonymous verification codes (e.g., SM:a7x9k2p) that prove a human verified the post
+- **User Preferences**: Your selected microphone device and theme preference (light/dark mode)
+- **Cached Verifications**: Temporary cache of verification results (expires after 5 minutes)
+
+## How We Use Your Data
+
+1. **Voice Verification**: Audio is sent to OpenAI's Whisper API for transcription to verify spoken words match your post
+2. **Code Generation**: Create unique soulmark codes for verified posts
+3. **Verification Checks**: Allow others to verify soulmark codes are legitimate
+
+## Data Storage & Security
+
+- **Audio**: Never stored - deleted immediately after transcription
+- **Post Content**: We only process selected words, never store full posts
+- **Personal Information**: We don't collect names, emails, or any identifying information
+- **Anonymous Codes**: Soulmark codes cannot be traced back to individuals
+
+## Third-Party Services
+
+We use the following services:
+- **Supabase**: Hosts our verification API and database
+- **OpenAI Whisper**: Transcribes audio to text (audio is not retained by OpenAI)
+
+## Your Rights
+
+- **No Account Required**: Use Soulmark completely anonymously
+- **No Tracking**: We don't track your browsing or collect analytics
+- **Local Control**: Disable the extension at any time through your browser
+
+## Data Sharing
+
+We **never**:
+- Sell your data
+- Share data with advertisers
+- Track you across websites
+- Store voice recordings
+- Associate soulmarks with personal identities
+
+## Children's Privacy
+
+Soulmark is not intended for users under 13 years of age. We do not knowingly collect data from children.
+
+## Changes to This Policy
+
+We may update this privacy policy from time to time. We will notify users of any material changes by updating the "Last updated" date.
+
+## Contact
+
+For privacy concerns or questions, please open an issue on our GitHub repository or contact us at [soulmark@arctether.com].
+
+## Compliance
+
+This extension complies with:
+- Chrome Web Store Developer Program Policies
+- GDPR (General Data Protection Regulation)
+- CCPA (California Consumer Privacy Act)
+
+By using Soulmark, you agree to this privacy policy.
+</file>
+
+<file path="resize_screenshots.py">
+#!/usr/bin/env python3
+"""Resize screenshots for Chrome Web Store"""
+
+import os
+import subprocess
+
+# Define input and output directories
+input_dir = "resize"
+output_dir = "screenshots"
+
+# Create output directory
+os.makedirs(output_dir, exist_ok=True)
+
+# Get all PNG files
+screenshots = [f for f in os.listdir(input_dir) if f.endswith('.png')]
+
+# Process each screenshot
+for i, screenshot in enumerate(screenshots[:5]):  # Max 5 screenshots
+    input_path = os.path.join(input_dir, screenshot)
+    
+    # Determine output size based on index
+    # First 4 images: 1280x800, last one: 640x400
+    if i < 4:
+        size = "1280x800"
+        output_name = f"screenshot_{i+1}_1280x800.png"
+    else:
+        size = "640x400"
+        output_name = f"screenshot_{i+1}_640x400.png"
+    
+    output_path = os.path.join(output_dir, output_name)
+    
+    # ImageMagick command to resize and remove alpha channel
+    # -resize fits image within dimensions maintaining aspect ratio
+    # -gravity center centers the image
+    # -background white adds white background
+    # -extent forces exact dimensions
+    # -alpha remove removes alpha channel
+    cmd = [
+        "magick", input_path,
+        "-resize", size,
+        "-gravity", "center",
+        "-background", "white",
+        "-extent", size,
+        "-alpha", "remove",
+        output_path
+    ]
+    
+    print(f"Resizing {screenshot} to {size}...")
+    try:
+        subprocess.run(cmd, check=True)
+        print(f"✅ Created {output_path}")
+    except subprocess.CalledProcessError:
+        print(f"❌ Failed to resize {screenshot}")
+        # Try alternative command
+        alt_cmd = [
+            "convert", input_path,
+            "-resize", size,
+            "-gravity", "center",
+            "-background", "white",
+            "-extent", size,
+            "-alpha", "remove",
+            output_path
+        ]
+        try:
+            subprocess.run(alt_cmd, check=True)
+            print(f"✅ Created {output_path} (using convert)")
+        except:
+            print(f"❌ Could not resize {screenshot}")
+
+print(f"\n✨ Screenshots ready in '{output_dir}' directory!")
+print("Upload these to Chrome Web Store:")
+for f in os.listdir(output_dir):
+    if f.endswith('.png'):
+        print(f"  - {f}")
+</file>
+
+<file path="STORE_LISTING.md">
+# Chrome Web Store Listing
+
+## Title
+Soulmark - Human Verification for Social Media
+
+## Summary (132 chars max)
+Prove you're human on X & LinkedIn. Combat bots by speaking words from your posts to add cryptographic verification.
+
+## Description
+
+🤖 Tired of bots and AI-generated content flooding your feed? 
+👤 Want to prove your posts come from a real human?
+🎯 Soulmark is the answer.
+
+**How it works:**
+1. Write your post on X or LinkedIn
+2. Click the Soulmark button
+3. Speak 1-3 words from your post (takes 2 seconds!)
+4. Get a verification code added to your post
+5. Others can see you're verified human
+
+**Why Soulmark?**
+✅ Simple: Just speak a few words - no crypto wallets or complex setup
+✅ Fast: 2-second voice verification 
+✅ Private: Works anonymously, no personal data required
+✅ Effective: Easy for humans, not worth it for bots to fake at scale
+
+**Features:**
+• Works on X.com and LinkedIn
+• Beautiful light/dark mode
+• Real-time audio visualization
+• Automatic verification badges on soulmarked posts
+• Cross-platform verification codes
+
+**Perfect for:**
+• Professionals who want to stand out on LinkedIn
+• X users fighting the bot apocalypse
+• Anyone who values authentic human connection online
+• Content creators proving their work is original
+
+Join the movement to reclaim social media from bots. Every soulmark is a vote for human authenticity.
+
+## Category
+Social & Communication
+
+## Language
+English
+
+## Screenshots needed:
+1. Soulmark button on X post (1280x800)
+2. Voice recording popup in action (1280x800)
+3. Verified post with badge (1280x800)
+4. LinkedIn integration (1280x800)
+5. Dark mode example (640x400)
+
+## Small Promo Tile Text (440x280)
+"Prove You're Human
+Speak to Verify"
+
+## Privacy Policy URL
+(You'll need to create this - can be a simple page explaining you don't collect personal data)
+
+## Support Email
+(Your email for support)
+
+## Website
+(Optional but recommended - could be a simple landing page)
+</file>
+
+<file path="TERMS.md">
+# Terms of Service for Soulmark
+
+*Last updated: January 6, 2025*
+
+## 1. Acceptance of Terms
+
+By installing and using the Soulmark browser extension ("Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, do not use the Service.
+
+## 2. Description of Service
+
+Soulmark is a browser extension that provides human verification for social media posts through voice verification. Users speak words from their posts to generate cryptographic proof of human authorship.
+
+## 3. Use of the Service
+
+### Permitted Use
+- Personal, non-commercial use
+- Verifying your own social media posts
+- Checking verification status of other posts
+
+### Prohibited Use
+You agree NOT to:
+- Use the Service for spam or automated posting
+- Attempt to circumvent or fake verifications
+- Use the Service to harass or impersonate others
+- Reverse engineer or modify the Service
+- Use the Service for any illegal purpose
+- Overwhelm our servers with excessive requests
+
+## 4. User Content
+
+- You retain all rights to your social media posts
+- By using Soulmark, you grant us limited permission to process your voice and text for verification only
+- We do not claim ownership of any content you create
+- You are responsible for the content you post and verify
+
+## 5. Privacy
+
+Your privacy is important to us. Please review our Privacy Policy, which is incorporated into these Terms by reference.
+
+## 6. Intellectual Property
+
+- Soulmark and its original content, features, and functionality are owned by the developers
+- The Service is protected by copyright, trademark, and other laws
+- Our open-source code is available under applicable licenses
+
+## 7. Disclaimer of Warranties
+
+THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO:
+- MERCHANTABILITY
+- FITNESS FOR A PARTICULAR PURPOSE
+- NON-INFRINGEMENT
+- ACCURACY OR RELIABILITY
+
+## 8. Limitation of Liability
+
+IN NO EVENT SHALL SOULMARK, ITS DEVELOPERS, OR CONTRIBUTORS BE LIABLE FOR:
+- Any indirect, incidental, special, consequential, or punitive damages
+- Loss of profits, data, use, goodwill, or other intangible losses
+- Any damages exceeding $100 USD
+
+## 9. Indemnification
+
+You agree to indemnify and hold harmless Soulmark and its developers from any claims, damages, or expenses arising from your use of the Service or violation of these Terms.
+
+## 10. Modifications
+
+### To the Service
+We reserve the right to modify or discontinue the Service at any time without notice.
+
+### To the Terms
+We may revise these Terms at any time. Continued use of the Service after changes constitutes acceptance of the new Terms.
+
+## 11. Termination
+
+We may terminate or suspend your access to the Service immediately, without prior notice, for any reason, including breach of these Terms.
+
+## 12. Governing Law
+
+These Terms shall be governed by the laws of United Kingdom, without regard to conflict of law provisions.
+
+## 13. Entire Agreement
+
+These Terms constitute the entire agreement between you and Soulmark regarding the use of the Service.
+
+## 14. Contact Information
+
+For questions about these Terms, please contact us at [soulmark@arctether.com] or through our GitHub repository.
+
+## 15. Severability
+
+If any provision of these Terms is found to be unenforceable, the remaining provisions will continue in full force and effect.
+
+---
+
+**By using Soulmark, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service.**
+</file>
+
+<file path="assets/icon.svg">
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="128" height="128" rx="24" fill="#FFFEF7"/>
+  <circle cx="64" cy="64" r="40" stroke="#D4722C" stroke-width="8"/>
+  <circle cx="64" cy="64" r="16" fill="#D4722C"/>
+</svg>
+</file>
+
+<file path="background/service-worker.js">
+// Store the current soulmark data temporarily
+let currentSoulmarkData = null;
+
+// Import config (this will be available in service worker context)
+importScripts('../config.js');
+
+// Listen for messages from content scripts
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'openSoulmarkPopup') {
+    // Store the data for the popup
+    currentSoulmarkData = request.data;
+    
+    // Open the popup
+    chrome.action.openPopup();
+    
+    sendResponse({ success: true });
+  } else if (request.action === 'getSoulmarkData') {
+    // Send the stored data to the popup
+    sendResponse({ data: currentSoulmarkData });
+  } else if (request.action === 'clearSoulmarkData') {
+    // Clear the data after use
+    currentSoulmarkData = null;
+    sendResponse({ success: true });
+  } else if (request.action === 'soulmarkComplete') {
+    // Get the active tab
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs && tabs[0]) {
+        // Send the soulmark code back to the content script
+        chrome.tabs.sendMessage(tabs[0].id, {
+          action: 'insertSoulmark',
+          code: request.code
+        });
+      }
+    });
+    
+    sendResponse({ success: true });
+  } else if (request.action === 'getConfig') {
+    // Send config to content script
+    sendResponse({ config: CONFIG });
+  }
+  
+  return true; // Keep the message channel open for async responses
+});
+
+// Generate a random soulmark code
+function generateSoulmarkCode() {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let code = '';
+  for (let i = 0; i < 7; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+// Export for use in popup if needed
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { generateSoulmarkCode };
+}
+</file>
+
+<file path="content-scripts/twitter.js">
+// Common words to skip when selecting words for verification
+const COMMON_WORDS = new Set([
+  'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
+  'of', 'with', 'by', 'from', 'up', 'about', 'into', 'through', 'during',
+  'before', 'after', 'above', 'below', 'between', 'under', 'is', 'are',
+  'was', 'were', 'been', 'being', 'have', 'has', 'had', 'do', 'does',
+  'did', 'will', 'would', 'should', 'could', 'may', 'might', 'must',
+  'can', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she',
+  'it', 'we', 'they', 'them', 'their', 'what', 'which', 'who', 'when',
+  'where', 'why', 'how', 'all', 'each', 'every', 'some', 'any', 'few',
+  'more', 'most', 'other', 'such', 'only', 'own', 'same', 'so', 'than',
+  'too', 'very', 'just', 'my', 'your', 'his', 'her', 'its', 'our'
+]);
+
+// Map to store intervals for each button
+const monitoringIntervals = new WeakMap();
+
+// Monitor tweet text and update button state
+function startMonitoringTweetText(button) {
+  // Check text immediately
+  updateButtonState(button);
+  
+  // Set up interval to check periodically
+  const interval = setInterval(() => {
+    updateButtonState(button);
+  }, 200);
+  
+  // Store interval for cleanup
+  monitoringIntervals.set(button, interval);
+}
+
+function updateButtonState(button) {
+  const tweetText = getTweetText();
+  if (!tweetText) {
+    button.disabled = true;
+    button.classList.add('disabled');
+    return;
+  }
+  
+  // Check if we have enough meaningful words
+  const words = selectRandomWords(tweetText, 3);
+  if (words.length >= 1) {
+    button.disabled = false;
+    button.classList.remove('disabled');
+  } else {
+    button.disabled = true;
+    button.classList.add('disabled');
+  }
+}
+
+// Find the tweet compose area and inject button
+function injectSoulmarkButton() {
+  // Initial scan
+  scanForTweetButtons();
+  
+  // Look for tweet compose areas
+  const observer = new MutationObserver((mutations) => {
+    scanForTweetButtons();
+  });
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+}
+
+function scanForTweetButtons() {
+  // Find the tweet button in the compose area
+  const tweetButtons = document.querySelectorAll('[data-testid="tweetButtonInline"], [data-testid="tweetButton"]');
+  
+  tweetButtons.forEach(tweetButton => {
+    // Check if we already added a button here
+    const parent = tweetButton.parentElement;
+    if (parent && !parent.querySelector('.soulmark-button')) {
+      createSoulmarkButton(parent, tweetButton);
+    }
+  });
+}
+
+function createSoulmarkButton(parent, tweetButton) {
+  const soulmarkButton = document.createElement('button');
+  soulmarkButton.className = 'soulmark-button soulmark-icon-only';
+  soulmarkButton.disabled = true;
+  soulmarkButton.title = 'Add a soulmark to verify you\'re human';
+  soulmarkButton.innerHTML = `
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="1.5"/>
+      <circle cx="10" cy="10" r="4" fill="currentColor"/>
+    </svg>
+  `;
+  
+  soulmarkButton.addEventListener('click', handleSoulmarkClick);
+  
+  // Monitor tweet text for changes
+  startMonitoringTweetText(soulmarkButton);
+  
+  // Insert before the tweet button
+  parent.insertBefore(soulmarkButton, tweetButton);
+}
+
+function handleSoulmarkClick(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  
+  // Check if extension context is still valid
+  if (!chrome.runtime?.id) {
+    console.error('[Soulmark] Extension context invalidated. Please refresh the page.');
+    alert('Soulmark extension was updated. Please refresh the page to continue.');
+    return;
+  }
+  
+  // Find the tweet text
+  const tweetText = getTweetText();
+  if (!tweetText) {
+    console.error('Could not find tweet text');
+    return;
+  }
+  
+  // Select random meaningful words
+  const words = selectRandomWords(tweetText, 3);
+  if (words.length === 0) {
+    console.error('No meaningful words found in tweet');
+    return;
+  }
+  
+  try {
+    // Send message to background script to open popup
+    chrome.runtime.sendMessage({
+      action: 'openSoulmarkPopup',
+      data: {
+        text: tweetText,
+        words: words
+      }
+    }, response => {
+      if (chrome.runtime.lastError) {
+        console.error('[Soulmark] Error:', chrome.runtime.lastError.message);
+        alert('Soulmark extension needs to be reloaded. Please refresh the page.');
+      }
+    });
+  } catch (error) {
+    console.error('[Soulmark] Failed to send message:', error);
+    alert('Soulmark extension was updated. Please refresh the page to continue.');
+  }
+}
+
+function getTweetText() {
+  // Try different selectors for the tweet compose area
+  const selectors = [
+    '[data-testid="tweetTextarea_0"]',
+    '[role="textbox"][data-text="true"]',
+    '.DraftEditor-content',
+    '[contenteditable="true"][role="textbox"]'
+  ];
+  
+  for (const selector of selectors) {
+    const element = document.querySelector(selector);
+    if (element) {
+      return element.textContent || element.innerText || '';
+    }
+  }
+  
+  return null;
+}
+
+function selectRandomWords(text, count) {
+  // Split text into words and filter out common ones
+  const words = text.split(/\s+/)
+    .map(word => word.replace(/[.,!?;:'"()[\]{}]/g, '').toLowerCase())
+    .filter(word => word.length > 2 && !COMMON_WORDS.has(word));
+  
+  // Remove duplicates
+  const uniqueWords = [...new Set(words)];
+  
+  // If we have fewer unique words than requested, return all
+  if (uniqueWords.length <= count) {
+    return uniqueWords;
+  }
+  
+  // Randomly select words
+  const selected = [];
+  const indices = new Set();
+  
+  while (selected.length < count && indices.size < uniqueWords.length) {
+    const index = Math.floor(Math.random() * uniqueWords.length);
+    if (!indices.has(index)) {
+      indices.add(index);
+      selected.push(uniqueWords[index]);
+    }
+  }
+  
+  return selected;
+}
+
+// Listen for messages from background script
+if (chrome.runtime?.id) {
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === 'insertSoulmark') {
+      insertSoulmarkCode(request.code);
+      sendResponse({ success: true });
+    }
+  });
+}
+
+// Insert the soulmark code into the tweet
+function insertSoulmarkCode(code) {
+  const selectors = [
+    '[data-testid="tweetTextarea_0"]',
+    '[role="textbox"][data-text="true"]',
+    '.DraftEditor-content',
+    '[contenteditable="true"][role="textbox"]',
+    '[data-slate-editor="true"]',
+    'div[contenteditable="true"]'
+  ];
+  
+  let inserted = false;
+  
+  for (const selector of selectors) {
+    const elements = document.querySelectorAll(selector);
+    
+    for (const element of elements) {
+      // Check if this is actually a tweet compose area
+      if (element.getAttribute('data-testid') === 'tweetTextarea_0' || 
+          element.closest('[data-testid="tweetTextarea_0"]') ||
+          (element.getAttribute('contenteditable') === 'true' && element.closest('form'))) {
+        
+        // Focus the element
+        element.focus();
+        
+        // Try different methods to insert text
+        try {
+          // Method 1: Direct text content manipulation
+          const currentText = element.textContent || element.innerText || '';
+          const soulmarkText = ` [SM:${code}]`;
+          
+          // Method 2: Use execCommand
+          document.execCommand('selectAll', false, null);
+          document.execCommand('insertText', false, currentText + soulmarkText);
+          
+          // Trigger various events to ensure Twitter updates
+          element.dispatchEvent(new Event('input', { bubbles: true }));
+          element.dispatchEvent(new Event('change', { bubbles: true }));
+          element.dispatchEvent(new InputEvent('input', { 
+            bubbles: true,
+            cancelable: true,
+            data: soulmarkText
+          }));
+          
+          inserted = true;
+          break;
+        } catch (error) {
+          console.error('[Soulmark] Error inserting text:', error);
+        }
+      }
+    }
+    
+    if (inserted) break;
+  }
+  
+  if (!inserted) {
+    // Try one more time with a delay
+    setTimeout(() => {
+      const textarea = document.querySelector('[data-testid="tweetTextarea_0"]');
+      if (textarea) {
+        textarea.focus();
+        document.execCommand('insertText', false, ` [SM:${code}]`);
+        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }, 500);
+  }
+}
+
+// Cache for verification results
+const verificationCache = new Map();
+
+// Scan for soulmark codes in tweets
+async function scanForSoulmarks() {
+  const soulmarkPattern = /\[SM:([a-z0-9]{7})\]/gi;
+  
+  // Find all tweet text elements
+  const tweetTextElements = document.querySelectorAll('[data-testid="tweetText"]');
+  
+  // Collect all codes to verify
+  const codesToVerify = [];
+  const elementMap = new Map();
+  
+  for (const element of tweetTextElements) {
+    // Skip if already processed
+    if (element.hasAttribute('data-soulmark-scanned')) continue;
+    element.setAttribute('data-soulmark-scanned', 'true');
+    
+    const text = element.textContent;
+    const matches = [...text.matchAll(soulmarkPattern)];
+    
+    for (const match of matches) {
+      const fullCode = match[0]; // [SM:xxxxx]
+      const codeOnly = match[1]; // xxxxx
+      
+      if (!verificationCache.has(fullCode)) {
+        codesToVerify.push(fullCode);
+      }
+      
+      // Map code to element for later processing
+      if (!elementMap.has(fullCode)) {
+        elementMap.set(fullCode, []);
+      }
+      elementMap.get(fullCode).push({ element, fullCode, codeOnly });
+    }
+  }
+  
+  // Batch verify new codes
+  if (codesToVerify.length > 0) {
+    await Promise.all(codesToVerify.map(code => verifySoulmark(code)));
+  }
+  
+  // Replace codes and add badges for verified soulmarks
+  for (const [code, items] of elementMap) {
+    const verification = verificationCache.get(code);
+    
+    if (verification && verification.valid) {
+      items.forEach(({ element, fullCode, codeOnly }) => {
+        // Replace the code with an elegant indicator
+        replaceSoulmarkCode(element, fullCode, codeOnly, verification);
+        // Add verification badge to the tweet actions
+        addVerificationBadge(element, verification);
+      });
+    }
+  }
+}
+
+// Verify a soulmark code
+async function verifySoulmark(code) {
+  // Check cache first
+  if (verificationCache.has(code)) {
+    return verificationCache.get(code);
+  }
+  
+  try {
+    // Load config if not already loaded
+    if (typeof CONFIG === 'undefined') {
+      await loadConfig();
+    }
+    
+    // Remove brackets and SM: prefix for API call
+    const cleanCode = code.replace(/^\[SM:/i, '').replace(/\]$/, '');
+    
+    const response = await fetch(
+      `${CONFIG.SUPABASE_URL}/functions/v1/check-soulmark?code=${encodeURIComponent(cleanCode)}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+        }
+      }
+    );
+    
+    const result = await response.json();
+    
+    // Cache the result
+    verificationCache.set(code, result);
+    
+    // Clear cache after 5 minutes
+    setTimeout(() => verificationCache.delete(code), 5 * 60 * 1000);
+    
+    return result;
+  } catch (error) {
+    console.error('Error verifying soulmark:', error);
+    return { valid: false, error: 'Verification failed' };
+  }
+}
+
+// Load config dynamically
+async function loadConfig() {
+  return new Promise((resolve) => {
+    if (!chrome.runtime?.id) {
+      console.error('[Soulmark] Extension context not available');
+      resolve();
+      return;
+    }
+    
+    try {
+      chrome.runtime.sendMessage({ action: 'getConfig' }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error('[Soulmark] Error loading config:', chrome.runtime.lastError.message);
+        } else if (response && response.config) {
+          window.CONFIG = response.config;
+        }
+        resolve();
+      });
+    } catch (error) {
+      console.error('[Soulmark] Failed to load config:', error);
+      resolve();
+    }
+  });
+}
+
+// Replace soulmark code with elegant indicator
+function replaceSoulmarkCode(element, fullCode, codeOnly, verification) {
+  // Get the text content
+  let html = element.innerHTML;
+  
+  // Create the replacement indicator
+  const indicator = `<span class="soulmark-indicator" data-code="${codeOnly}" title="Soulmark verified ${verification.age}">◉</span>`;
+  
+  // Replace the code with the indicator
+  const newHtml = html.replace(fullCode, indicator);
+  
+  if (html === newHtml) {
+    // Try a different approach - look for text nodes
+    const walker = document.createTreeWalker(
+      element,
+      NodeFilter.SHOW_TEXT,
+      null,
+      false
+    );
+    
+    let node;
+    while (node = walker.nextNode()) {
+      if (node.textContent.includes(fullCode)) {
+        const span = document.createElement('span');
+        span.className = 'soulmark-indicator';
+        span.setAttribute('data-code', codeOnly);
+        span.setAttribute('title', `Soulmark verified ${verification.age}`);
+        span.textContent = '◉';
+        
+        const newText = node.textContent.replace(fullCode, '');
+        const parts = node.textContent.split(fullCode);
+        
+        const parent = node.parentNode;
+        parent.insertBefore(document.createTextNode(parts[0]), node);
+        parent.insertBefore(span, node);
+        parent.insertBefore(document.createTextNode(parts[1] || ''), node);
+        parent.removeChild(node);
+        
+        // Add click handler
+        span.addEventListener('click', (e) => {
+          e.stopPropagation();
+          showSoulmarkDetails(codeOnly, verification);
+        });
+        
+        break;
+      }
+    }
+  } else {
+    // Update the element
+    element.innerHTML = newHtml;
+    
+    // Add click handler to show details
+    const indicatorElement = element.querySelector(`.soulmark-indicator[data-code="${codeOnly}"]`);
+    if (indicatorElement) {
+      indicatorElement.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showSoulmarkDetails(codeOnly, verification);
+      });
+    }
+  }
+}
+
+// Show soulmark details in a tooltip
+function showSoulmarkDetails(code, verification) {
+  // Remove any existing tooltip
+  const existingTooltip = document.querySelector('.soulmark-tooltip');
+  if (existingTooltip) {
+    existingTooltip.remove();
+  }
+  
+  // Create tooltip
+  const tooltip = document.createElement('div');
+  tooltip.className = 'soulmark-tooltip';
+  tooltip.innerHTML = `
+    <div class="soulmark-tooltip-header">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="10" cy="10" r="9" stroke="#D4722C" stroke-width="2"/>
+        <circle cx="10" cy="10" r="4" fill="#D4722C"/>
+      </svg>
+      <strong>Soulmark Verified</strong>
+    </div>
+    <div class="soulmark-tooltip-content">
+      <p>Human verified ${verification.age}</p>
+      <p>${verification.wordCount} words spoken</p>
+      <p class="soulmark-code">Code: SM:${code}</p>
+    </div>
+  `;
+  
+  // Position near cursor
+  document.body.appendChild(tooltip);
+  
+  // Remove on click outside
+  setTimeout(() => {
+    document.addEventListener('click', function removeTooltip() {
+      tooltip.remove();
+      document.removeEventListener('click', removeTooltip);
+    });
+  }, 100);
+}
+
+// Add verification badge to tweet
+function addVerificationBadge(tweetElement, verification) {
+  // Find the parent tweet article
+  const tweetArticle = tweetElement.closest('article');
+  if (!tweetArticle) return;
+  
+  // Find the action bar (like, retweet, etc.)
+  const actionBar = tweetArticle.querySelector('[role="group"]');
+  if (!actionBar || actionBar.querySelector('.soulmark-badge')) return;
+  
+  // Create verification badge
+  const badge = document.createElement('div');
+  badge.className = 'soulmark-badge';
+  badge.innerHTML = `
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="9" cy="9" r="8" stroke="#D4722C" stroke-width="1.5"/>
+      <circle cx="9" cy="9" r="3.5" fill="#D4722C"/>
+    </svg>
+  `;
+  
+  // Add hover tooltip
+  badge.title = `Verified human ${verification.age} • ${verification.wordCount} words spoken${verification.hasUser ? ' • Authenticated' : ''}`;
+  
+  // Insert before the first action button
+  actionBar.insertBefore(badge, actionBar.firstChild);
+}
+
+// Observe for new tweets
+function observeNewTweets() {
+  const observer = new MutationObserver((mutations) => {
+    // Debounce scanning
+    clearTimeout(observeNewTweets.timeout);
+    observeNewTweets.timeout = setTimeout(() => {
+      scanForSoulmarks();
+    }, 500);
+  });
+  
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+}
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    injectSoulmarkButton();
+    scanForSoulmarks();
+    observeNewTweets();
+  });
+} else {
+  injectSoulmarkButton();
+  scanForSoulmarks();
+  observeNewTweets();
+}
+</file>
+
+<file path="options/index.html">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Soulmark Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <svg class="logo" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="16" cy="16" r="14" stroke="#D4722C" stroke-width="3"/>
+        <circle cx="16" cy="16" r="6" fill="#D4722C"/>
+      </svg>
+      <h1>Soulmark Settings</h1>
+    </div>
+    
+    <div class="settings-section">
+      <h2>Microphone Settings</h2>
+      
+      <div class="setting-item">
+        <label for="microphone-select">Select Microphone:</label>
+        <select id="microphone-select" class="select-input">
+          <option value="">Default Microphone</option>
+        </select>
+        <button id="refresh-devices" class="icon-button" title="Refresh device list">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13.65 2.35A8 8 0 1 0 14 8h-2a6 6 0 1 1-.45-2.27L9 8h5V3l-1.35 1.35z" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="setting-item">
+        <button id="test-microphone" class="primary-button">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 1C8.34315 1 7 2.34315 7 4V10C7 11.6569 8.34315 13 10 13C11.6569 13 13 11.6569 13 10V4C13 2.34315 11.6569 1 10 1Z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M5 8V10C5 12.7614 7.23858 15 10 15C12.7614 15 15 12.7614 15 10V8M10 15V19M7 19H13" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+          Test Microphone
+        </button>
+        <div id="test-status" class="test-status"></div>
+      </div>
+      
+      <div id="audio-visualizer" class="audio-visualizer">
+        <canvas id="visualizer-canvas" width="300" height="100"></canvas>
+      </div>
+    </div>
+    
+    <div class="settings-section">
+      <h2>Privacy Settings</h2>
+      
+      <div class="setting-item">
+        <label class="checkbox-label">
+          <input type="checkbox" id="anonymous-mode">
+          <span>Anonymous mode (don't save user ID with soulmarks)</span>
+        </label>
+      </div>
+    </div>
+    
+    <div class="settings-section">
+      <h2>About Soulmark</h2>
+      <p class="about-text">
+        Soulmark helps verify you're human by having you speak words from your posts. 
+        This creates a verification that's easy for humans but not worth it for bots to fake at scale.
+      </p>
+      <p class="version">Version 0.1.0</p>
+    </div>
+    
+    <div class="save-section">
+      <button id="save-settings" class="primary-button">Save Settings</button>
+      <span id="save-status" class="save-status"></span>
+    </div>
+  </div>
+  
+  <script src="options.js"></script>
+</body>
+</html>
+</file>
+
+<file path="options/options.css">
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: #FFFEF7;
+  color: #2C1810;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.logo {
+  flex-shrink: 0;
+}
+
+h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #D4722C;
+  letter-spacing: -0.5px;
+}
+
+h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #5A3A2A;
+  margin-bottom: 16px;
+}
+
+.settings-section {
+  background: white;
+  border: 2px solid #F0E6DC;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.setting-item {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.setting-item:last-child {
+  margin-bottom: 0;
+}
+
+label {
+  font-weight: 500;
+  color: #5A3A2A;
+  min-width: 150px;
+}
+
+.select-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 2px solid #E0D5CA;
+  border-radius: 8px;
+  background-color: #FFFEF7;
+  font-size: 14px;
+  color: #2C1810;
+  transition: border-color 0.2s ease;
+}
+
+.select-input:focus {
+  outline: none;
+  border-color: #D4722C;
+}
+
+.icon-button {
+  padding: 8px;
+  background-color: #F0E6DC;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #5A3A2A;
+}
+
+.icon-button:hover {
+  background-color: #E0D5CA;
+  transform: rotate(180deg);
+}
+
+.primary-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background-color: #D4722C;
+  color: #FFFEF7;
+  border: none;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.primary-button:hover {
+  background-color: #C0642A;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(212, 114, 44, 0.3);
+}
+
+.primary-button:active {
+  transform: translateY(0);
+}
+
+.test-status {
+  font-size: 14px;
+  color: #5A3A2A;
+  margin-left: 12px;
+}
+
+.test-status.success {
+  color: #5A8A3A;
+}
+
+.test-status.error {
+  color: #E74C3C;
+}
+
+.audio-visualizer {
+  display: none;
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #F8F4F0;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.audio-visualizer.active {
+  display: block;
+}
+
+#visualizer-canvas {
+  width: 100%;
+  max-width: 400px;
+  height: 100px;
+  background-color: #FFFEF7;
+  border-radius: 8px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  font-weight: normal;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: #D4722C;
+  cursor: pointer;
+}
+
+.about-text {
+  color: #5A3A2A;
+  line-height: 1.8;
+  margin-bottom: 12px;
+}
+
+.version {
+  font-size: 14px;
+  color: #8A7A6A;
+}
+
+.save-section {
+  margin-top: 32px;
+  text-align: center;
+}
+
+.save-status {
+  display: inline-block;
+  margin-left: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.save-status.show {
+  opacity: 1;
+}
+
+.save-status.success {
+  color: #5A8A3A;
+}
+
+.save-status.error {
+  color: #E74C3C;
+}
+
+/* Animation for refresh icon */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.icon-button.spinning svg {
+  animation: spin 0.5s linear;
+}
+</file>
+
+<file path="options/options.js">
+// DOM elements
+const microphoneSelect = document.getElementById('microphone-select');
+const refreshButton = document.getElementById('refresh-devices');
+const testButton = document.getElementById('test-microphone');
+const testStatus = document.getElementById('test-status');
+const visualizer = document.getElementById('audio-visualizer');
+const canvas = document.getElementById('visualizer-canvas');
+const anonymousMode = document.getElementById('anonymous-mode');
+const saveButton = document.getElementById('save-settings');
+const saveStatus = document.getElementById('save-status');
+
+// Audio visualization
+let audioContext = null;
+let analyser = null;
+let microphone = null;
+let animationId = null;
+const canvasCtx = canvas.getContext('2d');
+
+// Initialize settings
+async function init() {
+  await loadSettings();
+  await refreshAudioDevices();
+}
+
+// Load saved settings
+async function loadSettings() {
+  const settings = await chrome.storage.local.get(['selectedMicrophone', 'anonymousMode']);
+  
+  if (settings.selectedMicrophone) {
+    microphoneSelect.value = settings.selectedMicrophone;
+  }
+  
+  if (settings.anonymousMode !== undefined) {
+    anonymousMode.checked = settings.anonymousMode;
+  }
+}
+
+// Refresh audio devices
+async function refreshAudioDevices() {
+  refreshButton.classList.add('spinning');
+  
+  try {
+    // Request permission first
+    await navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      stream.getTracks().forEach(track => track.stop());
+    });
+    
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const audioInputs = devices.filter(device => device.kind === 'audioinput');
+    
+    // Clear existing options
+    microphoneSelect.innerHTML = '<option value="">Default Microphone</option>';
+    
+    // Add audio input devices
+    audioInputs.forEach(device => {
+      const option = document.createElement('option');
+      option.value = device.deviceId;
+      option.textContent = device.label || `Microphone ${microphoneSelect.options.length}`;
+      microphoneSelect.appendChild(option);
+    });
+    
+    // Restore saved selection
+    const { selectedMicrophone } = await chrome.storage.local.get('selectedMicrophone');
+    if (selectedMicrophone) {
+      microphoneSelect.value = selectedMicrophone;
+    }
+    
+  } catch (error) {
+    console.error('Error enumerating devices:', error);
+    testStatus.textContent = 'Error: Could not access audio devices';
+    testStatus.className = 'test-status error';
+  }
+  
+  setTimeout(() => {
+    refreshButton.classList.remove('spinning');
+  }, 500);
+}
+
+// Test microphone
+async function testMicrophone() {
+  if (microphone) {
+    stopTesting();
+    return;
+  }
+  
+  try {
+    const constraints = {
+      audio: microphoneSelect.value ? { deviceId: microphoneSelect.value } : true
+    };
+    
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    
+    // Set up audio context and analyser
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioContext.createAnalyser();
+    microphone = audioContext.createMediaStreamSource(stream);
+    
+    analyser.fftSize = 256;
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    
+    microphone.connect(analyser);
+    
+    // Update UI
+    testButton.textContent = 'Stop Testing';
+    testStatus.textContent = 'Microphone active - speak to see levels';
+    testStatus.className = 'test-status success';
+    visualizer.classList.add('active');
+    
+    // Start visualization
+    function draw() {
+      animationId = requestAnimationFrame(draw);
+      
+      analyser.getByteFrequencyData(dataArray);
+      
+      canvasCtx.fillStyle = '#FFFEF7';
+      canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      const barWidth = (canvas.width / bufferLength) * 2.5;
+      let x = 0;
+      
+      for (let i = 0; i < bufferLength; i++) {
+        const barHeight = (dataArray[i] / 255) * canvas.height;
+        
+        const r = 212;
+        const g = 114 + (dataArray[i] / 255) * 50;
+        const b = 44;
+        
+        canvasCtx.fillStyle = `rgb(${r},${g},${b})`;
+        canvasCtx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+        
+        x += barWidth + 1;
+      }
+    }
+    
+    draw();
+    
+  } catch (error) {
+    console.error('Error accessing microphone:', error);
+    
+    let errorMessage = 'Error: Could not access microphone';
+    if (error.name === 'NotAllowedError') {
+      errorMessage = 'Microphone access denied. Please allow permissions in your browser.';
+    } else if (error.name === 'NotFoundError') {
+      errorMessage = 'No microphone found. Please connect a microphone.';
+    }
+    
+    testStatus.textContent = errorMessage;
+    testStatus.className = 'test-status error';
+  }
+}
+
+// Stop testing
+function stopTesting() {
+  if (animationId) {
+    cancelAnimationFrame(animationId);
+    animationId = null;
+  }
+  
+  if (microphone) {
+    microphone.disconnect();
+    microphone.mediaStream.getTracks().forEach(track => track.stop());
+    microphone = null;
+  }
+  
+  if (audioContext) {
+    audioContext.close();
+    audioContext = null;
+  }
+  
+  testButton.innerHTML = `
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 1C8.34315 1 7 2.34315 7 4V10C7 11.6569 8.34315 13 10 13C11.6569 13 13 11.6569 13 10V4C13 2.34315 11.6569 1 10 1Z" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M5 8V10C5 12.7614 7.23858 15 10 15C12.7614 15 15 12.7614 15 10V8M10 15V19M7 19H13" stroke="currentColor" stroke-width="1.5"/>
+    </svg>
+    Test Microphone
+  `;
+  testStatus.textContent = '';
+  visualizer.classList.remove('active');
+  
+  // Clear canvas
+  canvasCtx.fillStyle = '#FFFEF7';
+  canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+// Save settings
+async function saveSettings() {
+  const settings = {
+    selectedMicrophone: microphoneSelect.value,
+    anonymousMode: anonymousMode.checked
+  };
+  
+  try {
+    await chrome.storage.local.set(settings);
+    
+    saveStatus.textContent = 'Settings saved!';
+    saveStatus.className = 'save-status success show';
+    
+    setTimeout(() => {
+      saveStatus.classList.remove('show');
+    }, 3000);
+    
+  } catch (error) {
+    console.error('Error saving settings:', error);
+    saveStatus.textContent = 'Error saving settings';
+    saveStatus.className = 'save-status error show';
+  }
+}
+
+// Event listeners
+refreshButton.addEventListener('click', refreshAudioDevices);
+testButton.addEventListener('click', testMicrophone);
+saveButton.addEventListener('click', saveSettings);
+
+// Initialize on load
+init();
+</file>
+
+<file path="popup/index.html">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Soulmark - Verify Your Humanity</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body class="light-theme">
+  <div class="container">
+    <div class="header">
+      <svg class="logo" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+        <circle cx="12" cy="12" r="4" fill="currentColor"/>
+      </svg>
+      <h1>Soulmark</h1>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <svg class="sun-icon" width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="9" cy="9" r="3" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M9 1V3M9 15V17M1 9H3M15 9H17M3.5 3.5L5 5M13 13L14.5 14.5M14.5 3.5L13 5M5 13L3.5 14.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <svg class="moon-icon" width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 10.39C15.0444 10.7847 14.0085 10.9969 12.96 11.0114C8.97941 11.0678 5.61226 8.12576 5.01077 4.17938C4.73983 2.42289 5.10206 0.625885 6.03 0C2.57803 0.890862 -0.0989922 4.04882 0.00268779 7.68565C0.129245 12.2103 3.78965 15.8707 8.31434 15.9973C11.9512 16.099 15.1091 13.422 16 10.39Z" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="content">
+      <p class="instructions">Speak these words to verify you're human:</p>
+      
+      <div id="permission-notice" style="display: none; margin: 10px 0; padding: 10px; background: #fff3cd; border-radius: 8px; font-size: 14px; color: #856404;">
+        🎤 First time? Click below to allow microphone access.
+      </div>
+      
+      <div class="words-container" id="wordsContainer">
+        <!-- Words will be inserted here -->
+      </div>
+      
+      <div class="record-indicator" id="recordButton">
+        <div class="record-button-inner">
+          <div class="pulse-ring"></div>
+          <svg class="mic-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C10.3431 2 9 3.34315 9 5V12C9 13.6569 10.3431 15 12 15C13.6569 15 15 13.6569 15 12V5C15 3.34315 13.6569 2 12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M6 10V12C6 15.3137 8.68629 18 12 18C15.3137 18 18 15.3137 18 12V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 18V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="record-progress"></div>
+      </div>
+      
+      <div class="status" id="status"></div>
+      
+      <div class="sound-visualizer" id="soundVisualizer">
+        <canvas id="visualizerCanvas" width="280" height="32"></canvas>
+      </div>
+    </div>
+  </div>
+  
+  <script src="../config.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
+</file>
+
+<file path="popup/popup.css">
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* CSS Variables for theming */
+:root {
+  --bg-primary: #FFFEF7;
+  --bg-secondary: #FFF8F0;
+  --bg-tertiary: #FFEDE0;
+  --text-primary: #2C1810;
+  --text-secondary: #5A3A2A;
+  --text-tertiary: #8A7A6A;
+  --accent-primary: #D4722C;
+  --accent-secondary: #E89A5B;
+  --accent-hover: #C0642A;
+  --accent-active: #B05A26;
+  --success: #5A8A3A;
+  --error: #E74C3C;
+  --border-color: rgba(212, 114, 44, 0.2);
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --gradient-start: #FFF8F0;
+  --gradient-end: #FFEDE0;
+}
+
+body.dark-theme {
+  --bg-primary: #1A1614;
+  --bg-secondary: #252020;
+  --bg-tertiary: #302828;
+  --text-primary: #FFFEF7;
+  --text-secondary: #E0D5CA;
+  --text-tertiary: #A09080;
+  --accent-primary: #FF8A4C;
+  --accent-secondary: #FFB380;
+  --accent-hover: #FF9D66;
+  --accent-active: #E67A40;
+  --success: #7ABA5A;
+  --error: #FF6B6B;
+  --border-color: rgba(255, 138, 76, 0.3);
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --gradient-start: #252020;
+  --gradient-end: #302828;
+}
+
+body {
+  width: 320px;
+  min-height: 360px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  overflow: hidden;
+}
+
+/* Background animation */
+body::before {
+  content: '';
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, var(--accent-primary) 0%, transparent 70%);
+  opacity: 0.03;
+  animation: rotate 20s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.container {
+  padding: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.logo {
+  flex-shrink: 0;
+  color: var(--accent-primary);
+}
+
+h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent-primary);
+  letter-spacing: -0.5px;
+  flex: 1;
+}
+
+/* Theme toggle */
+.theme-toggle {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--bg-secondary);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  color: var(--text-secondary);
+}
+
+.theme-toggle:hover {
+  background: var(--bg-tertiary);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.theme-toggle .sun-icon,
+.theme-toggle .moon-icon {
+  position: absolute;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+body.light-theme .theme-toggle .sun-icon {
+  opacity: 1;
+  transform: rotate(0deg);
+}
+
+body.light-theme .theme-toggle .moon-icon {
+  opacity: 0;
+  transform: rotate(180deg);
+}
+
+body.dark-theme .theme-toggle .sun-icon {
+  opacity: 0;
+  transform: rotate(180deg);
+}
+
+body.dark-theme .theme-toggle .moon-icon {
+  opacity: 1;
+  transform: rotate(0deg);
+}
+
+.content {
+  text-align: center;
+}
+
+.instructions {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  line-height: 1.4;
+  animation: fadeInUp 0.3s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.words-container {
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  border: 2px solid var(--accent-primary);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+  animation: fadeInUp 0.4s ease 0.1s both;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px var(--shadow-color);
+}
+
+.words-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary), var(--accent-primary));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 14px;
+}
+
+.words-container:hover::before {
+  opacity: 0.05;
+}
+
+.word {
+  display: inline-block;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent-primary);
+  margin: 0 6px;
+  padding: 4px 0;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.word.spoken {
+  color: var(--success);
+  border-bottom-color: var(--success);
+}
+
+.word.spoken::after {
+  content: '✓';
+  position: absolute;
+  top: -18px;
+  right: -8px;
+  font-size: 14px;
+  color: var(--success);
+  animation: checkMark 0.3s ease;
+}
+
+@keyframes checkMark {
+  from {
+    opacity: 0;
+    transform: scale(0) rotate(-180deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.record-indicator {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  padding: 0;
+  background: transparent;
+  border: 3px solid var(--accent-primary);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  animation: fadeInUp 0.5s ease 0.1s both;
+  margin: 20px auto;
+}
+
+.record-button-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.record-progress {
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border-radius: 50%;
+  background: conic-gradient(var(--accent-primary) 0deg, transparent 0deg);
+  z-index: 0;
+}
+
+.record-indicator.recording {
+  border-color: var(--error);
+  animation: none;
+}
+
+.record-indicator.recording .pulse-ring {
+  display: block;
+}
+
+.pulse-ring {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  border: 2px solid var(--error);
+  border-radius: 50%;
+  animation: pulseRing 1.5s ease infinite;
+}
+
+@keyframes pulseRing {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+  }
+}
+
+.record-indicator.recording .mic-icon {
+  color: var(--error);
+  animation: micPulse 0.5s ease infinite;
+}
+
+@keyframes micPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.mic-icon {
+  flex-shrink: 0;
+  color: var(--accent-primary);
+  transition: color 0.3s ease;
+}
+
+.status {
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  min-height: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.status.success {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.status.error {
+  color: var(--error);
+}
+
+/* Sound Visualizer */
+.sound-visualizer {
+  display: none;
+  margin-top: 16px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-secondary);
+  padding: 6px;
+  animation: fadeIn 0.2s ease;
+  opacity: 0.8;
+}
+
+.sound-visualizer.active {
+  display: block;
+}
+
+#visualizerCanvas {
+  width: 100%;
+  height: 32px;
+  display: block;
+}
+
+/* Loading state */
+.loading {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--accent-primary);
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Permission notice styling */
+#permission-notice {
+  display: none;
+  margin: 10px 0;
+  padding: 10px;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+/* Smooth transitions for theme changes */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Support for CSS properties */
+@supports (background: conic-gradient(red 0deg, blue 360deg)) {
+  .record-progress {
+    transition: none;
+  }
+}
+</file>
+
+<file path="popup/popup.js">
+// Get DOM elements
+const wordsContainer = document.getElementById('wordsContainer');
+const recordButton = document.getElementById('recordButton');
+const statusElement = document.getElementById('status');
+const themeToggle = document.getElementById('themeToggle');
+const soundVisualizer = document.getElementById('soundVisualizer');
+const visualizerCanvas = document.getElementById('visualizerCanvas');
+
+// Audio recording variables
+let mediaRecorder = null;
+let audioChunks = [];
+let isRecording = false;
+let soulmarkWords = [];
+let tweetText = '';
+
+// Initialize popup
+async function init() {
+  // Load theme preference
+  const { theme } = await chrome.storage.local.get('theme');
+  if (theme === 'dark') {
+    document.body.classList.remove('light-theme');
+    document.body.classList.add('dark-theme');
+  }
+  
+  // Set up theme toggle
+  setupThemeToggle();
+  
+  // Get the soulmark data from background script
+  const response = await chrome.runtime.sendMessage({ action: 'getSoulmarkData' });
+  
+  if (response && response.data && response.data.words) {
+    soulmarkWords = response.data.words;
+    tweetText = response.data.text || '';
+    displayWords(soulmarkWords);
+    
+    // Start recording automatically
+    setTimeout(() => {
+      startAutoRecording();
+    }, 300); // Small delay to ensure UI is ready
+  } else {
+    statusElement.textContent = 'Error: No words to verify';
+    statusElement.className = 'status error';
+    recordButton.disabled = true;
+  }
+  
+  // Record button is now just visual, no manual recording
+}
+
+// Display the words to speak
+function displayWords(words) {
+  wordsContainer.innerHTML = words.map(word => 
+    `<span class="word">${word}</span>`
+  ).join(' ');
+}
+
+// Record button is now just for display
+function setupRecordButton() {
+  // Button is purely visual during auto-recording
+}
+
+// Start recording audio
+async function startRecording() {
+  if (isRecording) return;
+  
+  try {
+    // Get stored microphone preference
+    const { selectedMicrophone } = await chrome.storage.local.get('selectedMicrophone');
+    
+    // Request microphone permission with specific device if selected
+    const constraints = {
+      audio: selectedMicrophone ? { deviceId: selectedMicrophone } : true
+    };
+    
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    
+    // Create media recorder
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+    
+    mediaRecorder.ondataavailable = (event) => {
+      audioChunks.push(event.data);
+    };
+    
+    mediaRecorder.onstop = async () => {
+      // Create audio blob
+      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+      
+      // Stop all tracks
+      stream.getTracks().forEach(track => track.stop());
+      
+      // Process the recording
+      await processRecording(audioBlob);
+    };
+    
+    // Start recording
+    mediaRecorder.start();
+    isRecording = true;
+    
+    // Update UI
+    recordButton.classList.add('recording');
+    statusElement.textContent = 'Recording...';
+    statusElement.className = 'status';
+    waveform.classList.add('active');
+    
+  } catch (error) {
+    console.error('Error accessing microphone:', error);
+    
+    let errorMessage = 'Error: Could not access microphone';
+    
+    if (error.name === 'NotAllowedError') {
+      errorMessage = 'Microphone access denied. Please allow microphone permissions.';
+    } else if (error.name === 'NotFoundError') {
+      errorMessage = 'No microphone found. Please connect a microphone.';
+    } else if (error.name === 'NotReadableError') {
+      errorMessage = 'Microphone is already in use by another application.';
+    }
+    
+    statusElement.innerHTML = `
+      ${errorMessage}<br>
+      <a href="#" id="openSettings" style="color: #D4722C; text-decoration: underline;">Open Settings</a>
+    `;
+    statusElement.className = 'status error';
+    
+    // Add click handler for settings link
+    document.getElementById('openSettings')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      chrome.runtime.openOptionsPage();
+    });
+  }
+}
+
+// Stop recording audio
+function stopRecording() {
+  if (!isRecording || !mediaRecorder) return;
+  
+  mediaRecorder.stop();
+  isRecording = false;
+  
+  // Update UI
+  recordButton.classList.remove('recording');
+  statusElement.innerHTML = '<span class="loading"></span> Processing...';
+}
+
+// Process the recorded audio
+async function processRecording(audioBlob) {
+  try {
+    // Create form data
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'recording.webm');
+    formData.append('words', JSON.stringify(soulmarkWords));
+    
+    // Generate message hash
+    const messageHash = await generateHash(tweetText);
+    formData.append('messageHash', messageHash);
+    
+    // Call Supabase Edge Function
+    const response = await fetch(`${CONFIG.SUPABASE_URL}/functions/v1/verify-voice`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${CONFIG.SUPABASE_ANON_KEY}`,
+      },
+      body: formData
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      // Update UI
+      statusElement.textContent = 'Verified! Adding soulmark...';
+      statusElement.className = 'status success';
+      
+      // Mark words as spoken
+      document.querySelectorAll('.word').forEach(el => el.classList.add('spoken'));
+      
+      // Extract code without SM: prefix (if included)
+      const code = result.code.replace('SM:', '');
+      
+      // Send code back to content script
+      await chrome.runtime.sendMessage({
+        action: 'soulmarkComplete',
+        code: code
+      });
+      
+      // Close popup after delay
+      setTimeout(() => {
+        window.close();
+      }, 1500);
+    } else {
+      // Show error message
+      let errorMsg = result.message || 'Verification failed';
+      if (result.debug && result.debug.expectedWords && result.debug.spokenWords) {
+        errorMsg += `. Heard: "${result.debug.spokenWords.join(' ')}"`;
+      }
+      statusElement.textContent = errorMsg;
+      statusElement.className = 'status error';
+    }
+    
+  } catch (error) {
+    console.error('Error processing recording:', error);
+    statusElement.textContent = 'Error: Failed to verify voice';
+    statusElement.className = 'status error';
+  }
+}
+
+// Convert blob to base64
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+// Generate SHA-256 hash of text
+async function generateHash(text) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(text);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashHex;
+}
+
+
+// Auto-recording without countdown
+async function startAutoRecording() {
+  // Start recording immediately
+  beginRecording();
+}
+
+async function beginRecording() {
+  try {
+    // Get stored microphone preference
+    const { selectedMicrophone } = await chrome.storage.local.get('selectedMicrophone');
+    
+    // Request microphone permission with specific device if selected
+    const constraints = {
+      audio: selectedMicrophone ? { deviceId: selectedMicrophone } : true
+    };
+    
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    
+    // Create media recorder
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+    
+    mediaRecorder.ondataavailable = (event) => {
+      audioChunks.push(event.data);
+    };
+    
+    mediaRecorder.onstop = async () => {
+      // Create audio blob
+      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+      
+      // Stop all tracks
+      stream.getTracks().forEach(track => track.stop());
+      
+      // Process the recording
+      await processRecording(audioBlob);
+    };
+    
+    // Start recording
+    mediaRecorder.start();
+    isRecording = true;
+    
+    // Set up audio visualizer
+    setupAudioVisualizer(stream);
+    
+    // Update UI
+    recordButton.classList.add('recording');
+    statusElement.textContent = 'Speak now!';
+    statusElement.className = 'status';
+    
+    // Minimal timer with progress
+    const recordButtonInner = recordButton.querySelector('.record-button-inner');
+    const recordProgress = recordButton.querySelector('.record-progress');
+    
+    const startTime = Date.now();
+    const duration = 2000; // 2 seconds - super quick!
+    
+    const timerInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min((elapsed / duration) * 100, 100);
+      const degrees = (progress / 100) * 360;
+      recordProgress.style.background = `conic-gradient(var(--accent-primary) ${degrees}deg, transparent ${degrees}deg)`;
+      
+      if (elapsed >= duration) {
+        clearInterval(timerInterval);
+        recordButtonInner.innerHTML = '<span class="loading"></span>';
+        stopRecording();
+      }
+    }, 10); // Smooth 100fps updates
+    
+  } catch (error) {
+    console.error('Error accessing microphone:', error);
+    
+    let errorMessage = 'Error: Could not access microphone';
+    
+    if (error.name === 'NotAllowedError') {
+      errorMessage = 'Microphone access denied. Please allow microphone permissions.';
+    } else if (error.name === 'NotFoundError') {
+      errorMessage = 'No microphone found. Please connect a microphone.';
+    } else if (error.name === 'NotReadableError') {
+      errorMessage = 'Microphone is already in use by another application.';
+    }
+    
+    statusElement.innerHTML = `
+      ${errorMessage}<br>
+      <a href="#" id="openSettings" style="color: #D4722C; text-decoration: underline;">Open Settings</a>
+    `;
+    statusElement.className = 'status error';
+    
+    // Show error state
+    recordButton.disabled = true;
+    recordButton.innerHTML = 'Error';
+    
+    // Add click handler for settings link
+    document.getElementById('openSettings')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      chrome.runtime.openOptionsPage();
+    });
+  }
+}
+
+// Theme toggle functionality
+function setupThemeToggle() {
+  themeToggle.addEventListener('click', async () => {
+    const isCurrentlyDark = document.body.classList.contains('dark-theme');
+    
+    if (isCurrentlyDark) {
+      document.body.classList.remove('dark-theme');
+      document.body.classList.add('light-theme');
+      await chrome.storage.local.set({ theme: 'light' });
+    } else {
+      document.body.classList.remove('light-theme');
+      document.body.classList.add('dark-theme');
+      await chrome.storage.local.set({ theme: 'dark' });
+    }
+  });
+}
+
+// Audio visualizer
+function setupAudioVisualizer(stream) {
+  const audioContext = new AudioContext();
+  const analyser = audioContext.createAnalyser();
+  const source = audioContext.createMediaStreamSource(stream);
+  source.connect(analyser);
+  
+  analyser.fftSize = 256;
+  const bufferLength = analyser.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
+  
+  const ctx = visualizerCanvas.getContext('2d');
+  const WIDTH = visualizerCanvas.width;
+  const HEIGHT = visualizerCanvas.height;
+  
+  soundVisualizer.classList.add('active');
+  
+  function draw() {
+    if (!isRecording) {
+      soundVisualizer.classList.remove('active');
+      return;
+    }
+    
+    requestAnimationFrame(draw);
+    
+    analyser.getByteFrequencyData(dataArray);
+    
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg-secondary');
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    
+    const barWidth = (WIDTH / bufferLength) * 2.5;
+    let barHeight;
+    let x = 0;
+    
+    for (let i = 0; i < bufferLength; i++) {
+      barHeight = (dataArray[i] / 255) * HEIGHT;
+      
+      const gradient = ctx.createLinearGradient(0, HEIGHT - barHeight, 0, HEIGHT);
+      gradient.addColorStop(0, getComputedStyle(document.documentElement).getPropertyValue('--accent-secondary'));
+      gradient.addColorStop(1, getComputedStyle(document.documentElement).getPropertyValue('--accent-primary'));
+      
+      ctx.fillStyle = gradient;
+      ctx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
+      
+      x += barWidth + 1;
+    }
+  }
+  
+  draw();
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', init);
+</file>
+
+<file path="styles/soulmark.css">
+/* Soulmark button styling */
+.soulmark-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  margin-right: 12px;
+  background-color: #FFFEF7;
+  color: #D4722C;
+  border: 2px solid #D4722C;
+  border-radius: 9999px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Icon-only button styling */
+.soulmark-button.soulmark-icon-only {
+  padding: 8px;
+  gap: 0;
+  width: 36px;
+  height: 36px;
+  justify-content: center;
+  background-color: transparent;
+  border: none;
+}
+
+.soulmark-button.soulmark-icon-only svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Disabled state (gray) */
+.soulmark-button.soulmark-icon-only.disabled,
+.soulmark-button.soulmark-icon-only:disabled {
+  color: #8A7A6A;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.soulmark-button.soulmark-icon-only.disabled:hover,
+.soulmark-button.soulmark-icon-only:disabled:hover {
+  background-color: transparent;
+  color: #8A7A6A;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Enabled state (orange) */
+.soulmark-button.soulmark-icon-only:not(:disabled):not(.disabled) {
+  color: #D4722C;
+  cursor: pointer;
+}
+
+.soulmark-button.soulmark-icon-only:not(:disabled):not(.disabled):hover {
+  background-color: rgba(212, 114, 44, 0.1);
+  transform: scale(1.1);
+}
+
+.soulmark-button:hover {
+  background-color: #D4722C;
+  color: #FFFEF7;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(212, 114, 44, 0.3);
+}
+
+.soulmark-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(212, 114, 44, 0.2);
+}
+
+.soulmark-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Add a subtle hand-drawn effect */
+.soulmark-button::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 9999px;
+  padding: 2px;
+  background: linear-gradient(45deg, transparent, rgba(212, 114, 44, 0.1), transparent);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.soulmark-button:hover::before {
+  opacity: 1;
+}
+
+/* Soulmark indicator in tweets */
+.soulmark-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 4px;
+  padding: 2px 8px;
+  background-color: rgba(212, 114, 44, 0.1);
+  color: #D4722C;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  vertical-align: middle;
+}
+
+.soulmark-indicator svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Verification badge styles */
+.soulmark-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-right: 8px;
+  background-color: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #D4722C;
+}
+
+.soulmark-badge:hover {
+  background-color: rgba(212, 114, 44, 0.1);
+  transform: scale(1.1);
+}
+
+.soulmark-badge svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* Animation for badge appearance */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.soulmark-badge {
+  animation: fadeInScale 0.3s ease-out;
+}
+
+/* Different styles for authenticated vs anonymous */
+.soulmark-badge.authenticated {
+  opacity: 1;
+}
+
+/* Inline soulmark indicator */
+.soulmark-indicator {
+  display: inline-block;
+  color: #D4722C;
+  font-size: 0.9em;
+  cursor: pointer;
+  padding: 0 2px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  position: relative;
+  top: -1px;
+}
+
+.soulmark-indicator:hover {
+  background-color: rgba(212, 114, 44, 0.1);
+  transform: scale(1.2);
+}
+
+/* Soulmark tooltip */
+.soulmark-tooltip {
+  position: fixed;
+  z-index: 10000;
+  background: #FFFEF7;
+  border: 2px solid #D4722C;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  max-width: 250px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: tooltipFadeIn 0.2s ease;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.soulmark-tooltip-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: #D4722C;
+}
+
+.soulmark-tooltip-content {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #5A3A2A;
+}
+
+.soulmark-tooltip-content p {
+  margin: 4px 0;
+}
+
+.soulmark-code {
+  font-family: monospace;
+  font-size: 12px;
+  color: #8A7A6A;
+  margin-top: 8px !important;
+  padding-top: 8px;
+  border-top: 1px solid #E0D5CA;
+}
+
+/* LinkedIn-specific styles */
+.soulmark-carousel-button {
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.soulmark-carousel-button:hover {
+  background-color: rgba(212, 114, 44, 0.1) !important;
+}
+
+.soulmark-carousel-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.soulmark-carousel-button svg {
+  transition: transform 0.2s ease;
+}
+
+.soulmark-carousel-button:hover svg {
+  transform: scale(1.1);
+}
+</file>
+
+<file path="supabase/.temp/cli-latest">
+v2.24.3
+</file>
+
+<file path="supabase/.temp/gotrue-version">
+v2.176.1
+</file>
+
+<file path="supabase/.temp/pooler-url">
+postgresql://postgres.hirftaqvsomxlvnzhufv:[YOUR-PASSWORD]@aws-0-us-east-2.pooler.supabase.com:6543/postgres
+</file>
+
+<file path="supabase/.temp/postgres-version">
+15.8.1.099
+</file>
+
+<file path="supabase/.temp/project-ref">
+hirftaqvsomxlvnzhufv
+</file>
+
+<file path="supabase/.temp/rest-version">
+v12.2.3
+</file>
+
+<file path="supabase/.temp/storage-version">
+v1.24.6
+</file>
+
+<file path="supabase/functions/check-soulmark/.npmrc">
+# Configuration for private npm package dependencies
+# For more information on using private registries with Edge Functions, see:
+# https://supabase.com/docs/guides/functions/import-maps#importing-from-private-registries
+</file>
+
+<file path="supabase/functions/check-soulmark/deno.json">
+{
+  "imports": {}
+}
+</file>
+
+<file path="supabase/functions/check-soulmark/index.ts">
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+serve(async (req) => {
+  // Handle CORS
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
+  try {
+    const url = new URL(req.url)
+    const code = url.searchParams.get('code')
+
+    if (!code) {
+      throw new Error('Missing code parameter')
+    }
+
+    // Remove SM: prefix if present
+    const cleanCode = code.replace(/^SM:/i, '')
+
+    // Connect to Supabase
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
+    // Look up the soulmark
+    const { data, error } = await supabase
+      .from('soulmarks')
+      .select('id, created_at, word_count, platform, user_id')
+      .eq('code', cleanCode)
+      .single()
+
+    if (error || !data) {
+      return new Response(
+        JSON.stringify({ 
+          valid: false,
+          error: 'Soulmark not found'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Calculate age
+    const createdAt = new Date(data.created_at)
+    const ageInHours = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60))
+    
+    let ageText = ''
+    if (ageInHours < 1) {
+      ageText = 'Just now'
+    } else if (ageInHours < 24) {
+      ageText = `${ageInHours}h ago`
+    } else {
+      const days = Math.floor(ageInHours / 24)
+      ageText = `${days}d ago`
+    }
+
+    return new Response(
+      JSON.stringify({ 
+        valid: true,
+        verified: true,
+        age: ageText,
+        wordCount: data.word_count,
+        hasUser: !!data.user_id,
+        platform: data.platform
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ 
+        valid: false,
+        error: error.message 
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+    )
+  }
+})
+</file>
+
+<file path="supabase/functions/verify-voice/.npmrc">
+# Configuration for private npm package dependencies
+# For more information on using private registries with Edge Functions, see:
+# https://supabase.com/docs/guides/functions/import-maps#importing-from-private-registries
+</file>
+
+<file path="supabase/functions/verify-voice/deno.json">
+{
+  "imports": {}
+}
+</file>
+
+<file path="supabase/functions/verify-voice/index.ts">
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+serve(async (req) => {
+  // Handle CORS
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
+  try {
+    const formData = await req.formData()
+    const audioFile = formData.get('audio') as File
+    const expectedWords = JSON.parse(formData.get('words') as string)
+    const messageHash = formData.get('messageHash') as string
+    const userId = formData.get('userId') as string | null // Optional!
+
+    if (!audioFile || !expectedWords || !messageHash) {
+      throw new Error('Missing required fields')
+    }
+
+    // Convert audio for Whisper
+    const audioBuffer = await audioFile.arrayBuffer()
+    const audioBlob = new Blob([audioBuffer], { type: 'audio/webm' })
+
+    // Call Whisper API
+    const whisperForm = new FormData()
+    whisperForm.append('file', audioBlob, 'audio.webm')
+    whisperForm.append('model', 'whisper-1')
+    whisperForm.append('language', 'en') // Faster if we specify language
+
+    const whisperResponse = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+      },
+      body: whisperForm,
+    })
+
+    if (!whisperResponse.ok) {
+      throw new Error('Whisper API failed')
+    }
+
+    const { text: transcription } = await whisperResponse.json()
+    
+    // Fuzzy matching - check if user said at least one expected word
+    const spokenWords = transcription.toLowerCase().split(/\s+/)
+    const expectedLower = expectedWords.map((w: string) => w.toLowerCase())
+    
+    const matchFound = expectedLower.some((word: string) => 
+      spokenWords.some(spoken => {
+        // Direct match
+        if (spoken === word) return true
+        // Partial match (for plurals, tense changes)
+        if (spoken.includes(word) || word.includes(spoken)) return true
+        // Very close match (1 letter difference)
+        if (Math.abs(spoken.length - word.length) <= 1) {
+          let differences = 0
+          for (let i = 0; i < Math.min(spoken.length, word.length); i++) {
+            if (spoken[i] !== word[i]) differences++
+          }
+          return differences <= 1
+        }
+        return false
+      })
+    )
+
+    if (!matchFound) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: 'Words not matched',
+          transcription,
+          debug: { expectedWords, spokenWords: spokenWords.slice(0, 10) }
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Generate soulmark code
+    const code = generateSoulmarkCode()
+
+    // Store in database
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
+    const insertData: any = {
+      code,
+      message_hash: messageHash,
+      selected_words: expectedWords,
+      word_count: expectedWords.length,
+      voice_confirmed: true,
+      platform: 'chrome-extension',
+      metadata: {
+        transcription: transcription.substring(0, 200),
+        match_confidence: 'fuzzy',
+        timestamp: new Date().toISOString()
+      }
+    }
+
+    // Only add user_id if provided
+    if (userId) {
+      insertData.user_id = userId
+    }
+
+    const { error } = await supabase
+      .from('soulmarks')
+      .insert(insertData)
+
+    if (error) throw error
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        code: `SM:${code}`,
+        transcription 
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+
+  } catch (error) {
+    console.error('Error:', error)
+    return new Response(
+      JSON.stringify({ 
+        error: error.message,
+        success: false 
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+    )
+  }
+})
+
+function generateSoulmarkCode(): string {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
+  let code = ''
+  for (let i = 0; i < 7; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return code
+}
+</file>
+
+<file path="supabase/config.toml">
+[functions.verify-voice]
+enabled = true
+verify_jwt = true
+import_map = "./functions/verify-voice/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/verify-voice/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/verify-voice/*.html" ]
+
+[functions.check-soulmark]
+enabled = true
+verify_jwt = true
+import_map = "./functions/check-soulmark/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/check-soulmark/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/check-soulmark/*.html" ]
+</file>
+
+<file path=".gitignore">
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build output
+dist/
+build/
+*.zip
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Chrome extension development
+*.pem
+*.crx
+
+# Logs
+logs/
+*.log
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Config files with sensitive data
+config.js
+config.local.js
+config.prod.js
+
+# Backup files
+*.bak
+*.backup
+
+# Cache
+.cache/
+.parcel-cache/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variable files
+.env.development
+.env.test
+.env.production
+
+# Personal notes
+notes.txt
+TODO.txt
+.notes/
+</file>
+
+<file path="CLAUDE.md">
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+Soulmark is a Chrome extension that combats AI-generated content and bots by requiring humans to speak words from their posts. It's a simple, elegant solution: easy for humans, not worth it for bots to fake at scale.
+
+**The Big Idea**: When you post on X.com, you can "soulmark" it by speaking a few words from your text. This creates a cryptographic proof that a human was behind the post, adding a verification code like `[SM:a7x9k2p]` that others can verify.
+
+## Current Status (January 2025)
+
+We've built a fully functional MVP that:
+- ✅ Injects a "Soulmark" button next to X.com's Post button
+- ✅ Captures audio using the Web Audio API
+- ✅ Sends voice to OpenAI Whisper for transcription via Supabase
+- ✅ Verifies the spoken words match the selected words
+- ✅ Generates unique soulmark codes stored in Supabase
+- ✅ Automatically scans timeline for soulmarks and verifies them
+- ✅ Shows visual badges on verified posts
+- ✅ Auto-inserts soulmark codes into tweets
+- ✅ Replaces `[SM:xxxxx]` codes with elegant `◉` symbols
+
+## Architecture
+
+```
+soulmark-extension/
+├── manifest.json          # Chrome extension manifest (V3)
+├── content-scripts/       
+│   └── twitter.js        # Injects UI, handles verification badges
+├── popup/                
+│   ├── index.html        # Voice recording interface
+│   ├── popup.css         # Warm, human aesthetic
+│   └── popup.js          # Audio capture, Supabase API calls
+├── background/           
+│   └── service-worker.js # Message routing, state management
+├── options/              
+│   ├── index.html        # Settings page
+│   ├── options.css       # Settings styles
+│   └── options.js        # Mic selection, testing, audio visualization
+├── styles/              
+│   └── soulmark.css     # Injected styles for X.com
+├── config.js            # Supabase credentials (gitignored)
+└── supabase/functions/  
+    ├── verify-voice/    # Whisper API integration
+    └── check-soulmark/  # Verification endpoint
+
+## Key Technical Flows
+
+### Creating a Soulmark
+1. User types tweet → clicks "Soulmark" button
+2. Content script extracts text, selects 1-3 random meaningful words
+3. Popup opens showing selected words
+4. User presses & holds to record their voice
+5. Audio blob sent to Supabase Edge Function
+6. Whisper transcribes → fuzzy matches against expected words
+7. On success: unique code generated, stored in DB
+8. Code automatically inserted into tweet as `[SM:xxxxxxx]`
+
+### Verifying Soulmarks
+1. Content script scans for `[SM:xxxxxxx]` patterns
+2. Calls `/check-soulmark` endpoint to verify (strips brackets and prefix)
+3. Replaces code with clickable `◉` symbol
+4. Shows badge with age ("Soulmarked 2h ago") in tweet actions
+5. Click symbol for detailed verification info
+6. Caches results for 5 minutes to prevent API spam
+
+### Message Flow
+```
+Content Script ←→ Background Service Worker ←→ Popup
+     ↓                                           ↓
+  X.com DOM                              Supabase API
+```
+
+## Development Tips
+
+### Testing Changes
+1. Save files
+2. Go to `chrome://extensions/`
+3. Click refresh on Soulmark
+4. **Refresh X.com tab** (important!)
+
+### Debugging
+- Popup console: Right-click popup → Inspect
+- Background console: chrome://extensions/ → Service Worker link
+- Content script: F12 on X.com, look for `[Soulmark]` logs
+
+### Common Issues
+- "Extension context invalidated" → Refresh X.com after reloading extension
+- Mic not working → Check Settings page, test microphone
+- Button not appearing → Check console for selector matches
+
+## API Endpoints
+
+### POST /functions/v1/verify-voice
+- Receives: audio blob, expected words, message hash
+- Returns: `{ success: true, code: "SM:xxxxxxx", transcription: "..." }`
+
+### GET /functions/v1/check-soulmark
+- Receives: soulmark code
+- Returns: `{ valid: true, age: "2h ago", wordCount: 3, ... }`
+
+## What Makes This Exciting
+
+This is Web3's promise delivered with Web2 UX. No wallets, no gas fees, no complexity. Just speak and verify. We're creating a human trust layer for the internet that's:
+
+- **Friction-right**: Just enough effort to deter bots
+- **Privacy-first**: Can be used anonymously
+- **Scalable**: Edge functions handle verification
+- **Delightful**: Warm, human design that makes you smile
+
+The potential is huge: from combating misinformation to enabling new forms of human-only spaces online. We're building the foundation for a more trustworthy internet, one soulmark at a time.
+</file>
+
+<file path="config.js.example">
+// Supabase configuration template
+// Copy this file to config.js and fill in your actual values
+const CONFIG = {
+  SUPABASE_URL: 'YOUR_SUPABASE_PROJECT_URL',
+  SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY'
+};
+</file>
+
+<file path="manifest.json">
+{
+  "manifest_version": 3,
+  "name": "Soulmark - Human Verification for Social Media",
+  "version": "1.0.0",
+  "description": "Prove you're human on X & LinkedIn. Speak words from your posts to add cryptographic verification.",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://x.com/*",
+    "https://twitter.com/*",
+    "https://www.linkedin.com/*",
+    "https://linkedin.com/*"
+  ],
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://x.com/*", "https://twitter.com/*"],
+      "js": ["content-scripts/twitter.js"],
+      "css": ["styles/soulmark.css"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.linkedin.com/*", "https://linkedin.com/*"],
+      "js": ["content-scripts/linkedin.js"],
+      "css": ["styles/soulmark.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup/index.html",
+    "default_title": "Soulmark - Verify your humanity"
+  },
+  "options_page": "options/index.html",
+  "icons": {
+    "16": "assets/icon-16.png",
+    "48": "assets/icon-48.png",
+    "128": "assets/icon-128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/*"],
+      "matches": ["https://x.com/*", "https://twitter.com/*", "https://www.linkedin.com/*", "https://linkedin.com/*"]
+    }
+  ]
+}
+</file>
+
+<file path="PLAN.md">
+# THE FUCKING PLAN 🚀
+
+## Tomorrow: Auth Sprint (Jan 10, 2025)
+
+### Morning: Auth Foundation (9am-12pm)
+
+**1. Supabase Auth Setup**
+- [ ] Enable email auth with magic links
+- [ ] Add Google OAuth 
+- [ ] Add GitHub OAuth (developers love this shit)
+- [ ] Create `profiles` table linked to auth.users
+- [ ] Store: display_name, avatar_url, soulmark_count, created_at
+
+**2. Update Extension**
+- [ ] Add "Sign In" button to popup when not authenticated
+- [ ] Store auth token in chrome.storage.local
+- [ ] Pass user_id with all soulmark verifications
+- [ ] Show user avatar/name when logged in
+
+### Afternoon: Make It Sexy (1pm-5pm)
+
+**3. Auth Flow**
+- [ ] Click "Sign In" → Opens soulmark.com/auth in new tab
+- [ ] Implement magic link flow (no passwords!)
+- [ ] Social login buttons (Google/GitHub)
+- [ ] Redirect back with success message
+- [ ] Extension auto-detects auth and updates UI
+
+**4. Profile Features**
+- [ ] Show user's soulmark count in popup
+- [ ] "Your verified humanity score: 23 soulmarks"
+- [ ] Little streak counter for daily soulmarks
+- [ ] "Share your profile" link
+
+### Evening: Prep for Money (6pm-9pm)
+
+**5. Database Schema**
+```sql
+-- Run this shit in Supabase SQL editor
+
+-- User profiles
+CREATE TABLE profiles (
+  id uuid references auth.users primary key,
+  display_name text,
+  avatar_url text,
+  soulmark_count integer default 0,
+  subscription_tier text default 'free',
+  subscription_expires timestamp,
+  created_at timestamp default now()
+);
+
+-- Update existing soulmarks table
+ALTER TABLE soulmarks 
+ADD COLUMN user_id uuid references auth.users;
+
+-- Create RLS policies
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE soulmarks ENABLE ROW LEVEL SECURITY;
+
+-- Users can read their own profile
+CREATE POLICY "Users can view own profile" 
+ON profiles FOR SELECT 
+USING (auth.uid() = id);
+
+-- Users can update their own profile
+CREATE POLICY "Users can update own profile" 
+ON profiles FOR UPDATE 
+USING (auth.uid() = id);
+```
+
+**6. Quick Dashboard**
+- [ ] Create soulmark.com/dashboard
+- [ ] Dead simple: list of user's soulmarks
+- [ ] Show date, platform, word count
+- [ ] Tease premium features (grayed out)
+- [ ] "Upgrade to Pro" button (not connected yet)
+
+## The User Journey:
+1. Install extension → Works immediately (anonymous)
+2. After 3 soulmarks → "Sign in to save your verifications"
+3. Magic link → Smooth as fuck
+4. Now tracking everything → Building value
+5. Hit 10 soulmarks → "You're on fire! Upgrade for unlimited"
+
+## Week 2: Money Time 💰
+
+### Monday: Stripe Integration
+- [ ] Connect Stripe to Supabase
+- [ ] Create products: Pro ($5), Creator ($15)
+- [ ] Webhook for subscription updates
+
+### Tuesday: Payment Flow
+- [ ] "Upgrade" button in extension
+- [ ] Pricing page on website
+- [ ] Handle subscription states
+
+### Wednesday: LinkedIn Launch
+- [ ] Add LinkedIn content script
+- [ ] Find post/comment selectors
+- [ ] Test voice verification
+
+### Thursday: Premium Features
+- [ ] Unlimited soulmarks for paid users
+- [ ] Profile badges
+- [ ] Analytics dashboard
+
+### Friday: Marketing Prep
+- [ ] ProductHunt assets
+- [ ] Twitter launch thread
+- [ ] Demo video
+
+## Week 3: Scale 📈
+
+- [ ] API for developers ($$$)
+- [ ] Enterprise features
+- [ ] Bulk verification tools
+- [ ] Platform partnerships
+
+## The Vision:
+**Month 1**: 1,000 users, 100 paying
+**Month 3**: 10,000 users, 1,000 paying, 2 enterprise
+**Month 6**: 100k users, 5k paying, 10 enterprise
+**Year 1**: The default human verification for the internet
+
+## Revenue Projections:
+- Individual subscriptions: $25k MRR
+- Enterprise deals: $50k MRR  
+- API access: $25k MRR
+- **Total**: $100k MRR by month 6 = $1.2M ARR
+
+## Remember:
+- We're not building a feature, we're building a trust layer
+- Every soulmark makes the network more valuable
+- The goal isn't users, it's verifications per day
+- LinkedIn professionals will pay for trust
+
+Let's fucking go! 🔥🔥🔥
+</file>
+
+<file path="README.md">
+# 🔴 Soulmark Chrome Extension
+
+> **The internet's trust layer**: Prove you're human by speaking words from your posts. Easy for humans, not worth it for bots.
+
+## 🚀 What We're Building
+
+Soulmark is solving one of the internet's biggest problems: **how do we know if content is created by humans?** 
+
+In an age of AI-generated content and bot farms, we need a simple way to verify humanity. Soulmark does this elegantly:
+1. Write your post
+2. Click "Soulmark" 
+3. Speak 3 words from your text
+4. Get a verification code like `[SM:a7x9k2p]`
+5. Others see a badge: "✓ Soulmarked 2h ago"
+
+**No blockchain. No complexity. Just human voices creating trust.**
+
+## 🎯 Current Status (January 2025)
+
+We've built a fully functional MVP in just a few days! Here's what's working:
+
+### ✅ What's Live Right Now:
+- **Smart Button Injection** - Seamlessly adds "Soulmark" next to X.com's Post button
+- **Voice Capture** - Beautiful popup UI with press-and-hold recording
+- **AI Verification** - OpenAI Whisper transcribes and verifies your speech
+- **Real-time Badges** - Scans timeline and shows verification on soulmarked posts
+- **Microphone Settings** - Test different mics, see live audio visualization
+- **Smart Caching** - Prevents API spam while keeping verifications snappy
+
+### 🎯 Everything Works:
+- Auto-insertion of soulmark codes into tweets ✅
+- Visual replacement of codes with elegant `◉` symbols ✅
+- The world's first soulmark `[SM:i0kqol0]` is live! 🎉
+
+## 💻 Installation (Development)
+
+```bash
+# Clone the repo
+git clone [repo-url]
+cd soulmark-extension
+
+# Load in Chrome
+1. Open chrome://extensions/
+2. Enable "Developer mode" 
+3. Click "Load unpacked"
+4. Select the soulmark-extension folder
+5. You'll see the Soulmark icon in your toolbar!
+```
+
+## 🎤 First Run Setup
+
+1. **Allow Microphone Access**
+   - Click the Soulmark button
+   - Chrome will ask for mic permission - click Allow
+   - If you miss it, go to Settings (right-click extension → Options)
+
+2. **Test Your Setup**
+   - Go to X.com
+   - Type a test post: "Building something amazing with Soulmark today!"
+   - Click the orange "Soulmark" button
+   - Speak the 3 highlighted words
+   - Watch the magic happen! 🪄
+   - Your tweet gets a `[SM:xxxxx]` code that transforms into `◉`
+
+## 🐛 Debugging Guide
+
+### Check the Consoles:
+- **Popup Console**: Right-click popup → Inspect
+- **Background Console**: chrome://extensions/ → click "Service Worker"
+- **Content Script**: F12 on X.com, look for `[Soulmark]` logs
+
+### Common Issues:
+- **"Extension context invalidated"** → Refresh X.com after reloading extension
+- **Mic not working** → Settings page → Test Microphone → Allow permissions
+- **Button not appearing** → Check console for DOM selector issues
+
+## 🏗️ Architecture
+
+```
+User writes tweet → Clicks Soulmark → Speaks words → AI verifies → Code added to tweet
+                                           ↓
+                                    Supabase Edge Function
+                                           ↓
+                                     OpenAI Whisper API
+```
+
+### Tech Stack:
+- **Frontend**: Chrome Extension (Manifest V3)
+- **Backend**: Supabase Edge Functions
+- **AI**: OpenAI Whisper for speech recognition
+- **Database**: Supabase (PostgreSQL)
+- **Design**: Warm, handwritten aesthetic (#D4722C on #FFFEF7)
+
+## 🌟 Why This is Exciting
+
+1. **Solving a Real Problem**: Bot detection that actually works
+2. **Beautiful UX**: No wallets, no keys, no friction - just speak
+3. **Privacy First**: Works anonymously, no tracking
+4. **Scalable**: Edge functions can handle millions of verifications
+5. **Extensible**: Could work on any platform, any language
+
+### Future Possibilities:
+- Browser extension for all social platforms
+- Mobile apps with native voice capture
+- API for third-party integration
+- Soulmark-only comment sections
+- Trust scores based on verification history
+- Language-agnostic verification
+
+## 🤝 Contributing
+
+This is an active experiment in building human trust infrastructure. Ideas welcome!
+
+### Current Priorities:
+1. Fix auto-insertion of codes into tweets
+2. Add LinkedIn support
+3. Build a website to explain the concept
+4. Create API for developers
+5. Design trust visualization systems
+
+## 📝 API Documentation
+
+### Create Soulmark
+```
+POST /functions/v1/verify-voice
+Body: FormData with audio blob, words array, message hash
+Returns: { success: true, code: "SM:xxxxxxx", transcription: "..." }
+```
+
+### Verify Soulmark
+```
+GET /functions/v1/check-soulmark?code=SM:xxxxxxx
+Returns: { valid: true, age: "2h ago", wordCount: 3, ... }
+```
+
+## 🎨 Design Philosophy
+
+Soulmark should feel **human**:
+- Warm colors that feel like sunset
+- Organic shapes, nothing too perfect
+- Delightful interactions that make you smile
+- Voice as the most human interface
+
+## 🚦 Project Status
+
+**IT'S ALIVE!** Everything works:
+- ✅ Voice capture and verification with Whisper AI
+- ✅ Real-time badge display on verified posts
+- ✅ Supabase integration for storage and verification
+- ✅ Automatic code insertion into tweets
+- ✅ Elegant visual replacement (`[SM:xxxxx]` → `◉`)
+- ✅ Click for detailed verification info
+- ✅ Settings page with mic selection and testing
+
+This could be the beginning of something big. A simple idea executed well: **proving humanity through voice, one soulmark at a time**.
+
+## 🎉 The First Soulmark
+
+On January 9, 2025, the first ever soulmark was created: `[SM:i0kqol0]`
+
+This marks the beginning of a more human internet.
+
+---
+
+*Built with excitement about creating a more human internet* 🧡
+</file>
+
+<file path="test.html">
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Soulmark Extension Test</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 { color: #D4722C; }
+    .test-section {
+      background: white;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .status { 
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    .success { background: #d4edda; color: #155724; }
+    .error { background: #f8d7da; color: #721c24; }
+    .warning { background: #fff3cd; color: #856404; }
+    code {
+      background: #f1f1f1;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    ol { line-height: 1.8; }
+    .button-test {
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔴 Soulmark Extension Test Page</h1>
+  
+  <div class="test-section">
+    <h2>Extension Status</h2>
+    <div id="extension-status" class="status warning">Checking extension...</div>
+  </div>
+
+  <div class="test-section">
+    <h2>Quick Debugging Steps</h2>
+    <ol>
+      <li><strong>Check Extension is Loaded:</strong><br>
+        Open <code>chrome://extensions/</code> and verify Soulmark is enabled</li>
+      
+      <li><strong>Check Console for Errors:</strong><br>
+        Press <code>F12</code> → Console tab → Look for <code>[Soulmark]</code> messages</li>
+      
+      <li><strong>Test Popup Directly:</strong><br>
+        Click the Soulmark extension icon in your toolbar</li>
+      
+      <li><strong>Reload Extension:</strong><br>
+        Go to <code>chrome://extensions/</code> → Click the refresh icon on Soulmark</li>
+    </ol>
+  </div>
+
+  <div class="test-section">
+    <h2>Expected Console Output on X.com</h2>
+    <code>[Soulmark] Content script loaded on: https://x.com/...</code><br>
+    <code>[Soulmark] DOM already loaded, initializing...</code><br>
+    <code>[Soulmark] Starting button injection...</code><br>
+    <code>[Soulmark] Scanning for tweet buttons...</code>
+  </div>
+
+  <div class="test-section">
+    <h2>Common Issues</h2>
+    <ul>
+      <li><strong>No console messages:</strong> Extension might not be loaded or permissions not granted</li>
+      <li><strong>"Scanning for tweet buttons..." but no button found:</strong> X.com may have changed their DOM structure</li>
+      <li><strong>Button appears but doesn't work:</strong> Check popup permissions or Supabase connection</li>
+    </ul>
+  </div>
+
+  <div class="test-section">
+    <h2>Manual Test</h2>
+    <p>To manually test if the extension can communicate:</p>
+    <button onclick="testExtension()">Test Extension Communication</button>
+    <div id="test-result"></div>
+  </div>
+
+  <script>
+    // Check if extension is installed
+    function checkExtension() {
+      const status = document.getElementById('extension-status');
+      
+      // Try to communicate with extension
+      if (chrome && chrome.runtime) {
+        try {
+          chrome.runtime.sendMessage('hifmceakfobdfnbjijgfogpadmhabone', // You'll need to replace with your extension ID
+            { ping: true },
+            response => {
+              if (chrome.runtime.lastError) {
+                status.className = 'status warning';
+                status.textContent = 'Extension installed but not responding. Check the extension ID.';
+              } else {
+                status.className = 'status success';
+                status.textContent = '✅ Extension is installed and responding!';
+              }
+            }
+          );
+        } catch (e) {
+          status.className = 'status error';
+          status.textContent = '❌ Cannot communicate with extension. Make sure it\'s installed and enabled.';
+        }
+      } else {
+        status.className = 'status error';
+        status.textContent = '❌ Chrome extension API not available.';
+      }
+    }
+
+    function testExtension() {
+      const result = document.getElementById('test-result');
+      result.innerHTML = '<p>Check the console (F12) for debug messages.</p>';
+      console.log('[Test] Attempting to communicate with Soulmark extension...');
+    }
+
+    // Check on load
+    checkExtension();
+  </script>
+</body>
+</html>
+</file>
+
+</files>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Soulmark Icon Generator</title>
+</head>
+<body>
+    <h1>Soulmark Icons</h1>
+    <p>Right-click and save each icon:</p>
+    
+    <h2>128x128</h2>
+    <canvas id="icon128" width="128" height="128"></canvas>
+    
+    <h2>48x48</h2>
+    <canvas id="icon48" width="48" height="48"></canvas>
+    
+    <h2>16x16</h2>
+    <canvas id="icon16" width="16" height="16"></canvas>
+
+    <script>
+        function drawIcon(canvasId, size) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            // Background
+            ctx.fillStyle = '#FFFEF7';
+            ctx.fillRect(0, 0, size, size);
+            
+            // Outer circle
+            ctx.strokeStyle = '#D4722C';
+            ctx.lineWidth = size * 0.08;
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, size * 0.4, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Inner circle
+            ctx.fillStyle = '#D4722C';
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, size * 0.18, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Convert to PNG and download
+            canvas.toBlob(function(blob) {
+                const link = document.createElement('a');
+                link.download = `icon-${size}.png`;
+                link.href = URL.createObjectURL(blob);
+                link.textContent = `Download ${size}x${size}`;
+                canvas.parentNode.appendChild(document.createElement('br'));
+                canvas.parentNode.appendChild(link);
+            });
+        }
+        
+        // Generate all icons
+        drawIcon('icon128', 128);
+        drawIcon('icon48', 48);
+        drawIcon('icon16', 16);
+    </script>
+</body>
+</html>

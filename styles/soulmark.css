@@ -18,6 +18,49 @@
   overflow: hidden;
 }
 
+/* Icon-only button styling */
+.soulmark-button.soulmark-icon-only {
+  padding: 8px;
+  gap: 0;
+  width: 36px;
+  height: 36px;
+  justify-content: center;
+  background-color: transparent;
+  border: none;
+}
+
+.soulmark-button.soulmark-icon-only svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Disabled state (gray) */
+.soulmark-button.soulmark-icon-only.disabled,
+.soulmark-button.soulmark-icon-only:disabled {
+  color: #8A7A6A;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.soulmark-button.soulmark-icon-only.disabled:hover,
+.soulmark-button.soulmark-icon-only:disabled:hover {
+  background-color: transparent;
+  color: #8A7A6A;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Enabled state (orange) */
+.soulmark-button.soulmark-icon-only:not(:disabled):not(.disabled) {
+  color: #D4722C;
+  cursor: pointer;
+}
+
+.soulmark-button.soulmark-icon-only:not(:disabled):not(.disabled):hover {
+  background-color: rgba(212, 114, 44, 0.1);
+  transform: scale(1.1);
+}
+
 .soulmark-button:hover {
   background-color: #D4722C;
   color: #FFFEF7;
@@ -77,33 +120,27 @@
 .soulmark-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  margin-right: 12px;
-  background-color: rgba(212, 114, 44, 0.08);
-  border: 1px solid rgba(212, 114, 44, 0.2);
-  border-radius: 999px;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-right: 8px;
+  background-color: transparent;
+  border: none;
+  border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 13px;
   color: #D4722C;
 }
 
 .soulmark-badge:hover {
-  background-color: rgba(212, 114, 44, 0.15);
-  border-color: rgba(212, 114, 44, 0.3);
-  transform: translateY(-1px);
+  background-color: rgba(212, 114, 44, 0.1);
+  transform: scale(1.1);
 }
 
 .soulmark-badge svg {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
-}
-
-.soulmark-badge-text {
-  font-weight: 500;
-  white-space: nowrap;
 }
 
 /* Animation for badge appearance */
@@ -124,19 +161,7 @@
 
 /* Different styles for authenticated vs anonymous */
 .soulmark-badge.authenticated {
-  background-color: rgba(212, 114, 44, 0.12);
-  border-color: rgba(212, 114, 44, 0.3);
-}
-
-/* Hide badge text on smaller screens */
-@media (max-width: 480px) {
-  .soulmark-badge-text {
-    display: none;
-  }
-  
-  .soulmark-badge {
-    padding: 4px;
-  }
+  opacity: 1;
 }
 
 /* Inline soulmark indicator */
@@ -209,4 +234,29 @@
   margin-top: 8px !important;
   padding-top: 8px;
   border-top: 1px solid #E0D5CA;
+}
+
+/* LinkedIn-specific styles */
+.soulmark-carousel-button {
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.soulmark-carousel-button:hover {
+  background-color: rgba(212, 114, 44, 0.1) !important;
+}
+
+.soulmark-carousel-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.soulmark-carousel-button svg {
+  transition: transform 0.2s ease;
+}
+
+.soulmark-carousel-button:hover svg {
+  transform: scale(1.1);
 }

@@ -12,6 +12,42 @@ const COMMON_WORDS = new Set([
   'too', 'very', 'just', 'my', 'your', 'his', 'her', 'its', 'our'
 ]);
 
+// Map to store intervals for each button
+const monitoringIntervals = new WeakMap();
+
+// Monitor tweet text and update button state
+function startMonitoringTweetText(button) {
+  // Check text immediately
+  updateButtonState(button);
+  
+  // Set up interval to check periodically
+  const interval = setInterval(() => {
+    updateButtonState(button);
+  }, 200);
+  
+  // Store interval for cleanup
+  monitoringIntervals.set(button, interval);
+}
+
+function updateButtonState(button) {
+  const tweetText = getTweetText();
+  if (!tweetText) {
+    button.disabled = true;
+    button.classList.add('disabled');
+    return;
+  }
+  
+  // Check if we have enough meaningful words
+  const words = selectRandomWords(tweetText, 3);
+  if (words.length >= 1) {
+    button.disabled = false;
+    button.classList.remove('disabled');
+  } else {
+    button.disabled = true;
+    button.classList.add('disabled');
+  }
+}
+
 // Find the tweet compose area and inject button
 function injectSoulmarkButton() {
   // Initial scan
@@ -43,16 +79,20 @@ function scanForTweetButtons() {
 
 function createSoulmarkButton(parent, tweetButton) {
   const soulmarkButton = document.createElement('button');
-  soulmarkButton.className = 'soulmark-button';
+  soulmarkButton.className = 'soulmark-button soulmark-icon-only';
+  soulmarkButton.disabled = true;
+  soulmarkButton.title = 'Add a soulmark to verify you\'re human';
   soulmarkButton.innerHTML = `
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/>
-      <circle cx="8" cy="8" r="3" fill="currentColor"/>
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="1.5"/>
+      <circle cx="10" cy="10" r="4" fill="currentColor"/>
     </svg>
-    <span>Soulmark</span>
   `;
   
   soulmarkButton.addEventListener('click', handleSoulmarkClick);
+  
+  // Monitor tweet text for changes
+  startMonitoringTweetText(soulmarkButton);
   
   // Insert before the tweet button
   parent.insertBefore(soulmarkButton, tweetButton);
@@ -435,7 +475,6 @@ function showSoulmarkDetails(code, verification) {
     </div>
     <div class="soulmark-tooltip-content">
       <p>Human verified ${verification.age}</p>
-      <p>${verification.wordCount} words spoken</p>
       <p class="soulmark-code">Code: SM:${code}</p>
     </div>
   `;
@@ -466,15 +505,14 @@ function addVerificationBadge(tweetElement, verification) {
   const badge = document.createElement('div');
   badge.className = 'soulmark-badge';
   badge.innerHTML = `
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="8" cy="8" r="7" fill="#D4722C" fill-opacity="0.1" stroke="#D4722C" stroke-width="1.5"/>
-      <path d="M5 8L7 10L11 6" stroke="#D4722C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="9" cy="9" r="8" stroke="#D4722C" stroke-width="1.5"/>
+      <circle cx="9" cy="9" r="3.5" fill="#D4722C"/>
     </svg>
-    <span class="soulmark-badge-text">Soulmarked ${verification.age}</span>
   `;
   
   // Add hover tooltip
-  badge.title = `Verified human ${verification.age} • ${verification.wordCount} words spoken${verification.hasUser ? ' • Authenticated' : ''}`;
+  badge.title = `Verified human ${verification.age}${verification.hasUser ? ' • Authenticated' : ''}`;
   
   // Insert before the first action button
   actionBar.insertBefore(badge, actionBar.firstChild);

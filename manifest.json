@@ -1,15 +1,17 @@
 {
   "manifest_version": 3,
-  "name": "Soulmark - Human Verification",
-  "version": "0.1.0",
-  "description": "Prove you're human by speaking words from your posts",
+  "name": "Soulmark - Human Verification for Social Media",
+  "version": "1.0.1",
+  "description": "Prove you're human on X & LinkedIn. Speak words from your posts to add cryptographic verification.",
   "permissions": [
     "storage",
     "activeTab"
   ],
   "host_permissions": [
     "https://x.com/*",
-    "https://twitter.com/*"
+    "https://twitter.com/*",
+    "https://www.linkedin.com/*",
+    "https://linkedin.com/*"
   ],
   "background": {
     "service_worker": "background/service-worker.js"
@@ -18,6 +20,12 @@
     {
       "matches": ["https://x.com/*", "https://twitter.com/*"],
       "js": ["content-scripts/twitter.js"],
+      "css": ["styles/soulmark.css"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.linkedin.com/*", "https://linkedin.com/*"],
+      "js": ["content-scripts/linkedin.js"],
       "css": ["styles/soulmark.css"],
       "run_at": "document_idle"
     }
@@ -35,7 +43,7 @@
   "web_accessible_resources": [
     {
       "resources": ["assets/*"],
-      "matches": ["https://x.com/*", "https://twitter.com/*"]
+      "matches": ["https://x.com/*", "https://twitter.com/*", "https://www.linkedin.com/*", "https://linkedin.com/*"]
     }
   ]
 }
